@@ -137,4 +137,4 @@ dist
 
 
 # database ignore data
-database/data/*
+docker/
