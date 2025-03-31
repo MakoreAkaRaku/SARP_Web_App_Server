@@ -3,8 +3,23 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun --watch run ./src/index.ts",
+    "start": "",
+    "migrate": ""
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "^1.2.5"
+  },
+  "dependencies": {
+    "@elysiajs/cookie": "^0.8.0",
+    "@elysiajs/jwt": "^1.2.0",
+    "@elysiajs/swagger": "^1.2.2",
+    "drizzle-orm": "^0.41.0",
+    "elysia": "^1.2.25",
+    "postgres": "^3.4.5",
+    "sql": "^0.78.0",
+    "tailwind": "^4.0.0"
   },
   "peerDependencies": {
     "typescript": "^5"
