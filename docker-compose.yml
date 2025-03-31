@@ -13,7 +13,7 @@ services:
       - ./docker/postgres/data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d/
     ports:
-      - "5432:5432"
+      - ${DATABASE_PORT}:${DATABASE_PORT}
   adminer:
     image: adminer
     restart: always
