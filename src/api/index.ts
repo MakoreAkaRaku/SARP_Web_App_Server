@@ -1,6 +1,6 @@
 import Elysia from "elysia"
 import {module} from './modules/modules'
-import { authentication } from "./authentication"
+import { authentication } from "./auth"
 
 
 export const api = new Elysia({prefix: '/api'})
