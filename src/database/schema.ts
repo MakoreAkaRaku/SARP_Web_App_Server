@@ -8,6 +8,11 @@ export const permissions = pgTable('permission', {
     roleType: text('role_type').unique()
 })
 
+export const profile_pics = pgTable('profile_pic', {
+    id: serial('id').notNull().primaryKey(),
+    pic: text('pic_url').notNull(),
+})
+
 export const users = pgTable('user',{
     uuid: uuid('uuid').notNull().$defaultFn(()=> crypto.randomUUID()).primaryKey(),
     username: text('username').notNull().unique(),
@@ -15,6 +20,7 @@ export const users = pgTable('user',{
     email: text('email').notNull().unique(),
     permit_id: integer('permit_id').notNull().$defaultFn(()=> userPermissions.indexOf('user') + 1),
     registered_on: timestamp('registered_on').$defaultFn(()=> new Date()),
+    profile_pic_id: integer('profile_pic_id').references(()=>profile_pics.id),
 })
 
 export const apiTokens = pgTable('api_token',{
