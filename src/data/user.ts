@@ -1,8 +1,27 @@
-import { error } from "elysia"
+import { error, t } from "elysia"
 import { users } from "../database/schema"
 import { db } from "../db"
 import { eq } from "drizzle-orm"
 
+export const userRegistrySchema = t.Object({
+  uuid: t.String({ format: 'uuid' }),
+  username: t.String({ minLength: 4 }),
+  email: t.String({ format: 'email' }),
+  password: t.String({ minLength: 6 }),
+  passwordConfirmation: t.String({ minLength: 6 }),
+  permit_id: t.Integer()
+})
+
+export const loginUserSchema = t.Object({
+  username: t.String({ minLength: 4 }),
+  pwd: t.String({ minLength: 6 })
+})
+
+export const updateUserSchema = t.Object({
+  username: t.String({ minLength: 4 }),
+  email: t.String({ format: 'email' }),
+  pwd: t.String({ minLength: 6 })
+})
 
 export async function register(opts: {
     username: string,
@@ -30,8 +49,8 @@ export async function register(opts: {
 }
 
 
-export async function login(credentials: {username: string, password : string}) {
-    const {username, password} = credentials
+export async function login(credentials: {username: string, pwd : string}) {
+    const {username, pwd: password} = credentials
 
     try {
         const [row] = await db.select().from(users).where(eq(users.username, username))
@@ -40,7 +59,7 @@ export async function login(credentials: {username: string, password : string}) 
         }
         const valid = await Bun.password.verify(password, row.pwd, "bcrypt")
         if(!valid){
-            return {ok: false, errorCode: 'invalid pwd'} as const
+            return {ok: false, errorCode: 'invalid password'} as const
         }
         return {ok: true, data: row!} as const
     }catch(error) {
@@ -49,14 +68,19 @@ export async function login(credentials: {username: string, password : string}) 
 }
 
 export async function deleteUser(uuid: string) {
-    if (!uuid) {
-        return error(422, "UUID is required")
-    }
     const [row] = await db.delete(users).where(eq(users.uuid, uuid)).returning()
     if (!row) {
         return error(401, "Could not delete user")
     }
     
+    return row
+}
+
+export async function getUser(uuid: string) {
+    const [row] = await db.select().from(users).where(eq(users.uuid, uuid))
+    if (!row) {
+        return error(404, "User not found")
+    }
     return row
 }
 
@@ -79,17 +103,25 @@ export async function verifyUser(
 }
 
 export async function updateUser(
-    uuid: string,
     newCredentials: {
-        username: string,
-        email: string,
-        password: string
+      uuid: string,
+      username: string,
+      email: string,
+      password: string
     }
 ) {
-    const { username, email, password } = newCredentials
-    if (!uuid) {
-        return error(422, "UUID is required")
+    const {uuid, username, email, password } = newCredentials
+
+    const [user] = await db.select().from(users).where(eq(users.uuid, uuid))
+    if (!user) {
+        return error(404, "User not found")
     }
+
+    Bun.password.verify(password, user.pwd, "bcrypt").then((valid) => {
+        if (valid) {
+            return error(409, "Already using this password")
+        }
+    })
 
     const hashedPwd = await Bun.password.hash(password, {
         algorithm: "bcrypt",
@@ -105,7 +137,7 @@ export async function updateUser(
     .returning()
 
     if (!row) {
-        return error(401, "Could not update user")
+        return error(409, "Could not update user credentials")
     }
 
     return row
