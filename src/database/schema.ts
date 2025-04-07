@@ -36,9 +36,10 @@ export const groups = pgTable('group',{
 
 export const modules = pgTable('module',{
     uuid: uuid('uuid').$defaultFn(()=> crypto.randomUUID()).primaryKey(),
-    alias: text('alias').notNull(),
+    alias: text('alias').notNull().$defaultFn(()=> 'My fresh module'),
     token_api: uuid('token_api').notNull().references(()=>apiTokens.token_api),
     belong_group: integer('belong_group').references(()=>groups.id),
+    last_seen: timestamp('last_seen'),
 })
 
 export const peripherals = pgTable('peripheral',{
