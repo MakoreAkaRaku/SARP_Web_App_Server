@@ -1,5 +1,5 @@
 import Elysia from "elysia"
-import {module} from './modules/modules'
+import {module} from './modules'
 import { authentication } from "./authentication"
 import { user } from "./user"
 
