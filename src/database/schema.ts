@@ -24,7 +24,7 @@ export const users = pgTable('user',{
 })
 
 export const apiTokens = pgTable('api_token',{
-    token_api: text('token_api').notNull().primaryKey(),
+    token_api: uuid('token_api').notNull().primaryKey(),
     user_uuid: uuid('user_uuid').notNull().references(()=>users.uuid),
 })
 
@@ -35,10 +35,10 @@ export const groups = pgTable('group',{
 })
 
 export const modules = pgTable('module',{
-    uuid: uuid('uuid').notNull().primaryKey(),
+    uuid: uuid('uuid').$defaultFn(()=> crypto.randomUUID()).primaryKey(),
     alias: text('alias').notNull(),
-    token_api: text('token_api').notNull().references(()=>apiTokens.token_api),
-    belong_group: integer('belong_group').notNull().references(()=>groups.id),
+    token_api: uuid('token_api').notNull().references(()=>apiTokens.token_api),
+    belong_group: integer('belong_group').references(()=>groups.id),
 })
 
 export const peripherals = pgTable('peripheral',{
