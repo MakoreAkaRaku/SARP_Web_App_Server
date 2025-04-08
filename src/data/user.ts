@@ -1,5 +1,5 @@
 import { error, t } from "elysia"
-import { users } from "../database/schema"
+import { users, userPermissions } from "../database/schema"
 import { db } from "../db"
 import { eq } from "drizzle-orm"
 
@@ -141,4 +141,44 @@ export async function updateUser(
     }
 
     return row
+}
+
+export function hasAdminRole(user: {uuid: string, username: string, userRole: number} ) : Boolean {
+  return user.userRole == userPermissions.indexOf("admin")+1
+}
+
+export async function checkRole(user: {uuid: string,userRole: number}) {
+  
+  const [row] = await db.select({role_id: users.permit_id}).from(users).where(eq(users.uuid,user.uuid))
+  
+  if(!row){
+    return {valid: false, body: "Non existent user"}
+  }
+
+  return {valid: true, body: row.role_id == user.userRole}
+}
+
+export async function getUserRole(uuid: string) {
+  
+  const [result] = await db.select({role: users.permit_id}).from(users).where(eq(users.uuid,uuid))
+  
+  if(!result) {
+    return {valid: false, body: "Non existent user" } as const 
+  }
+
+  return {valid: true, body: result?.role} as const
+}
+
+export async function updateUserRole(requester: {uuid: string}, user: { uuid: string, userRole: number}) {
+  
+  if(user.userRole <= 0 || user.userRole > userPermissions.length) {
+    return {valid: false, body: "non existant role"} as const
+  }
+  
+  const [row] = await db.update(users).set({permit_id: user.userRole}).where(eq(users.uuid,user.uuid)).returning()
+  if(!row) {
+    return {valid: false, body: "User does not exist"} as const
+  }
+
+  return {valid: true, body: row} as const
 }
