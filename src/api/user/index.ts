@@ -1,5 +1,5 @@
-import Elysia, {t} from "elysia"
-import { getUser, deleteUser, updateUser, updateUserSchema } from "../../data/user"
+import Elysia, {t, error} from "elysia"
+import { getUser, deleteUser, updateUser, updateUserSchema, hasAdminRole, updateUserRole } from "../../data/user"
 import { jwtMiddleware } from "../middleware/jwtMiddleware"
 
 export const user = new Elysia({ prefix: '/user' })
@@ -19,4 +19,23 @@ export const user = new Elysia({ prefix: '/user' })
     return updateUser({uuid,username, password, email })
   },{
   body: updateUserSchema
+})
+.put('/permission', async ({jwtPayload, body}) => {
+  if(hasAdminRole(jwtPayload)) {
+    const result = await updateUserRole(jwtPayload,body)
+    if(!result.valid) {
+      return error(409,result.body)
+    }
+
+    //TODO: update jwt sign?
+    
+
+    return new Response(null, { status:204 })
+  }
+  return error(401,"Unauthorized")
+},{
+  body: t.Object({
+    uuid: t.String({format: 'uuid'}),
+    userRole: t.Integer()
+  })
 })
