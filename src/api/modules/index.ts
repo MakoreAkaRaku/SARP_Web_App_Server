@@ -39,7 +39,7 @@ export const module = new Elysia({prefix: '/module'})
       const result  = await setModuleGroup(moduleConfig)
 
       if(!result.valid) {
-        error(401, "UnAuthorized")
+        error(401, "Unauthorized")
       }
 
       return new Response(null, {status: 200})
