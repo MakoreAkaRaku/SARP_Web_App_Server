@@ -48,7 +48,7 @@ const example = new Elysia()
 
 
 const validPayload = {
-  uuid: 'this-aint-a-uuid',
+  uuid: crypto.randomUUID(),
   username: "username" + crypto.randomUUID(),
   userRole: 1
 }
