@@ -1,5 +1,5 @@
 import { t, type Static } from "elysia"
-import { modules, apiTokens, peripherals } from "../database/schema"
+import { modules, apiTokens, peripherals, groups } from "../database/schema"
 import { db } from "../db"
 import { eq, and } from "drizzle-orm"
 import { createUpdateSchema } from "drizzle-typebox"
@@ -26,20 +26,56 @@ export async function registerModule(tokenAPI: string) {
   return { valid: true, body: row!.uuid } as const
 }
 
-export async function getModuleData(moduleUIID: string) {
+export async function getModulesByGroup(user_uuid: string,group_id: number) {
+  const moduleList = await db.select()
+  .from(groups)
+  .innerJoin(
+    modules,
+    eq(modules.belong_group,groups.id)
+  )
+  .innerJoin(
+    apiTokens,
+    eq(apiTokens.token_api,modules.token_api)
+  )
+  .where(
+    and(
+      eq(groups.id,group_id),
+      eq(apiTokens.user_uuid,user_uuid)
+    )
+  )
+  if (!moduleList) {
+    return { valid: false, msg: "Error on Query" } as const
+  }
+  return { valid: true, body: moduleList} as const
+}
+
+export async function getModules(user_uuid: string) {
+  const moduleList = await db.select({modules, group_name: groups.group_name})
+    .from(modules)
+    .innerJoin(
+      apiTokens,
+      eq(apiTokens.token_api,modules.token_api)
+    )
+    .leftJoin(
+      groups,
+      eq(groups.id,modules.belong_group)
+    )
+    .where(eq(apiTokens.user_uuid, user_uuid))
+    
+  if (!moduleList) {
+    return { valid: false, msg: "Error fetching modules" } as const
+  }
+  return { valid: true, body: moduleList} as const
+}
+
+export async function getModule(moduleUIID: string) {
   const [module] = await db.select()
     .from(modules)
     .where(eq(modules.uuid, moduleUIID))
   if (!module) {
     return { valid: false, msg: "Module Not Found" } as const
   }
-
-
-  const modulePeripheral = await db.select()
-    .from(peripherals)
-    .where(eq(peripherals.parent_module,moduleUIID))
-
-  return { valid: true, body: {module, peripherals: modulePeripheral} } as const
+  return { valid: true, body: module} as const
 }
 
 

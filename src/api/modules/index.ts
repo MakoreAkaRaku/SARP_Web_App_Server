@@ -1,5 +1,5 @@
 import Elysia, { t, error } from "elysia";
-import { registerModule,moduleIdSchema,updateModuleSchema, userHasOwnershipOfModule, updateModule, getModuleData } from "../../data/module"
+import { registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules } from "../../data/module"
 import { peripheral } from "./peripheral";
 import { jwtMiddleware } from "../middleware/jwtMiddleware";
 import { hasAdminRole } from "../../data/user";
@@ -22,6 +22,14 @@ export const module = new Elysia({ prefix: '/module' })
     })
   .use(peripheral)
   .use(jwtMiddleware)
+  .get('/', async ({ params, jwtPayload }) => {
+    const { uuid: user_uuid } = jwtPayload
+    const result = await getModules(user_uuid)
+    if (!result.valid) {
+      return error(404, result.msg)
+    }
+    return result.body
+  })
   .guard(
     {
       params: moduleIdSchema,
@@ -35,20 +43,19 @@ export const module = new Elysia({ prefix: '/module' })
     },
     (app) => app
       .get('/:id', async ({ params }) => {
-        const result = await getModuleData(params.id)
+        const result = await getModule(params.id)
         if (!result.valid)
-          return error(404,result.msg)
-
+          return error(404, result.msg)
         return result.body
       })
       .put('/:id', async ({ params, body }) => {
-        const result = await updateModule(params.id,body)
+        const result = await updateModule(params.id, body)
         if (!result.valid) {
           return error(404, result.msg)
         }
         return result.body
       },
-    {
-      body: updateModuleSchema
-    })
+        {
+          body: updateModuleSchema
+        })
   )
