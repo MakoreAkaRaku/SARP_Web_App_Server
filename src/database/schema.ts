@@ -14,7 +14,7 @@ export const profile_pics = pgTable('profile_pic', {
 })
 
 export const users = pgTable('user',{
-    uuid: uuid('uuid').notNull().$defaultFn(()=> crypto.randomUUID()).primaryKey(),
+    uuid: uuid('uuid').notNull().defaultRandom().primaryKey(),
     username: text('username').notNull().unique(),
     pwd: text('pwd').notNull(),
     email: text('email').notNull().unique(),
@@ -24,7 +24,7 @@ export const users = pgTable('user',{
 })
 
 export const apiTokens = pgTable('api_token',{
-    token_api: uuid('token_api').notNull().primaryKey(),
+    token_api: uuid('token_api').defaultRandom().primaryKey(),
     user_uuid: uuid('user_uuid').notNull().references(()=>users.uuid),
 })
 
@@ -35,7 +35,7 @@ export const groups = pgTable('group',{
 })
 
 export const modules = pgTable('module',{
-    uuid: uuid('uuid').$defaultFn(()=> crypto.randomUUID()).primaryKey(),
+    uuid: uuid('uuid').defaultRandom().primaryKey(),
     alias: text('alias').notNull().$defaultFn(()=> 'My fresh module'),
     token_api: uuid('token_api').notNull().references(()=>apiTokens.token_api),
     belong_group: integer('belong_group').references(()=>groups.id),
