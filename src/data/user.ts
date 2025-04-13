@@ -70,18 +70,19 @@ export async function login(credentials: {username: string, pwd : string}) {
 export async function deleteUser(uuid: string) {
     const [row] = await db.delete(users).where(eq(users.uuid, uuid)).returning()
     if (!row) {
-        return error(401, "Could not delete user")
+        return {valid: false, body: "User does not exist anymore"} as const 
     }
     
-    return row
+    return {valid: true, body: row} as const
 }
 
 export async function getUser(uuid: string) {
     const [row] = await db.select().from(users).where(eq(users.uuid, uuid))
     if (!row) {
-        return error(404, "User not found")
+        return {valid: false, body: "User not found"} as const
     }
-    return row
+
+    return {valid: true, body:row} as const
 }
 
 export async function verifyUser(
@@ -112,17 +113,11 @@ export async function updateUser(
 ) {
     const {uuid, username, email, password } = newCredentials
 
-    const [user] = await db.select().from(users).where(eq(users.uuid, uuid))
-    if (!user) {
-        return error(404, "User not found")
-    }
-
-    Bun.password.verify(password, user.pwd, "bcrypt").then((valid) => {
-        if (valid) {
-            return error(409, "Already using this password")
-        }
-    })
-
+    //TODO: recheck if this is correct, at least for verification side.
+    // const [user] = await db.select().from(users).where(eq(users.uuid, uuid))
+    // if (!user) {
+    //     return {valid: false, body: "User Not Found"} as const 
+    // }
     const hashedPwd = await Bun.password.hash(password, {
         algorithm: "bcrypt",
     });
@@ -137,10 +132,10 @@ export async function updateUser(
     .returning()
 
     if (!row) {
-        return error(409, "Could not update user credentials")
+        return{valid: false, body: "Couldn't update credentials"} as const
     }
 
-    return row
+    return {valid: true, body: row} as const
 }
 
 export function hasAdminRole(user: {uuid: string, username: string, userRole: number} ) : Boolean {
