@@ -2,28 +2,29 @@ import { t, type Static } from "elysia"
 import { modules, apiTokens, peripherals, groups } from "../database/schema"
 import { db } from "../db"
 import { eq, and } from "drizzle-orm"
-import { createUpdateSchema } from "drizzle-typebox"
+import { createInsertSchema, createUpdateSchema } from "drizzle-typebox"
 
 export const moduleIdSchema = t.Object({
   id: t.String({ format: "uuid" })
 })
 
+const insertSchema = createInsertSchema(modules)
+export const registerModuleSchema = t.Omit(insertSchema,[])
+type InsertModuleInput = Static<typeof insertSchema>
 
-const moduleSchema = createUpdateSchema(modules)
+const updateSchema = createUpdateSchema(modules)
 
-export const updateModuleSchema = t.Omit(moduleSchema, ['uuid', 'last_seen'])
+export const updateModuleSchema = t.Omit(updateSchema, ['uuid', 'last_seen'])
 
 type UpdateModuleInput = Static<typeof updateModuleSchema>
 
-export async function registerModule(tokenAPI: string) {
-  const [row] = await db.insert(modules).values({
-    token_api: tokenAPI
-  }).returning()
+export async function registerModule(registerInfo: InsertModuleInput) {
+  const [row] = await db.insert(modules).values(registerInfo).returning()
 
   if (!row) {
     return { valid: false, body: "Non existent token" } as const
   }
-  return { valid: true, body: row!.uuid } as const
+  return { valid: true, body: row.uuid } as const
 }
 
 export async function getModulesByGroup(user_uuid: string,group_id: number) {
@@ -94,7 +95,7 @@ export async function updateModule(moduleUIID: string, updatedFields: UpdateModu
 
 
 export async function userHasOwnershipOfModule(request: { userUUID: string, moduleUUID: string }) {
-  const [apiTokensFromUserQuery] = await db.select({ module_uuid: modules.uuid }).from(modules)
+  const [apiTokensFromModuleUUIDQuery] = await db.select({ module_uuid: modules.uuid }).from(modules)
     .innerJoin(apiTokens,
       eq(modules.token_api, apiTokens.token_api)
     )
@@ -104,5 +105,5 @@ export async function userHasOwnershipOfModule(request: { userUUID: string, modu
         eq(modules.uuid, request.moduleUUID)
       )
     )
-  return !apiTokensFromUserQuery
+  return !apiTokensFromModuleUUIDQuery
 }

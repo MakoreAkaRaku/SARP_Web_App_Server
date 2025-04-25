@@ -1,26 +1,21 @@
 import Elysia, { t, error } from "elysia";
-import { registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules } from "../../data/module"
-import { peripheral } from "./peripheral";
+import { registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules,registerModuleSchema } from "../../data/module"
 import { jwtMiddleware } from "../middleware/jwtMiddleware";
 import { hasAdminRole } from "../../data/user";
 
 export const module = new Elysia({ prefix: '/module' })
-  .post('/register', async ({ body }) => {
-    const { tokenAPI } = body
-    const result = await registerModule(tokenAPI)
+  .post('/', async ({ body }) => {
+    const result = await registerModule(body)
     if (!result.valid) {
-      console.error("/module/register failed")
+      console.error("/module registering failed")
       return error(401, "This token has already expired or is not correct")
     }
     return Response.json({ moduleToken: result.body }, { status: 201 })
   }
     ,
     {
-      body: t.Object({
-        tokenAPI: t.String({ format: 'uuid' })
-      })
+      body: registerModuleSchema
     })
-  .use(peripheral)
   .use(jwtMiddleware)
   .get('/', async ({ params, jwtPayload }) => {
     const { uuid: user_uuid } = jwtPayload

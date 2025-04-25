@@ -1,7 +1,8 @@
-import { serial, text, pgTable, integer, uuid, timestamp } from "drizzle-orm/pg-core";
+import { serial, text, pgTable, integer, uuid, timestamp, jsonb } from "drizzle-orm/pg-core";
 
 export const userPermissions = ["admin","user","guest"]
-export const peripheralTypes = []
+export const peripheralTypes = ["thermometer","hygrometer","valve","other"]
+export const dataTypes = ["boolean","decimal","integer"]
 
 export const permissions = pgTable('permission', {
     id: serial('id').notNull().primaryKey(),
@@ -44,6 +45,7 @@ export const modules = pgTable('module',{
 
 export const peripherals = pgTable('peripheral',{
     id: serial('id').primaryKey(),
+    short_descr: text('short_descr'),
     peripheral_type: text('peripheral_type').notNull(),
     parent_module: uuid('parent_module').notNull().references(()=>modules.uuid),
 })
@@ -51,8 +53,9 @@ export const peripherals = pgTable('peripheral',{
 export const datas = pgTable('data',{
     id: serial('id').primaryKey(),
     peripheral_id: integer('peripheral_id').notNull().references(()=>peripherals.id),
-    value: text('value').notNull(),
-    register_date: timestamp('register_date').notNull().$defaultFn(()=> new Date()),
+    data_type: text('data_type').notNull(),
+    value: jsonb('value').notNull(),
+    registered_at: timestamp('register_date').notNull().defaultNow(),
 })
 
 export const conditions = pgTable('condition',{
