@@ -4,12 +4,10 @@ import { db } from "../db"
 import { eq } from "drizzle-orm"
 
 export const userRegistrySchema = t.Object({
-  uuid: t.String({ format: 'uuid' }),
   username: t.String({ minLength: 4 }),
   email: t.String({ format: 'email' }),
   password: t.String({ minLength: 6 }),
   passwordConfirmation: t.String({ minLength: 6 }),
-  permit_id: t.Integer()
 })
 
 export const loginUserSchema = t.Object({
@@ -32,19 +30,14 @@ export async function register(opts: {
     const hashedPwd = await Bun.password.hash(password, {
         algorithm: "bcrypt",
     });
-
     try {
-        console.log(opts, {hashed: hashedPwd})
-        const [row] = await db.insert(users).values(
-            {
-                username: username,
-                pwd: hashedPwd,
-                email: email,
-            }
-        ).returning()
-        return  { ok: true, data: row! } as const
+      const newUser = {username, email, pwd: hashedPwd}
+      console.log(newUser)
+      const [row] = await db.insert(users).values(newUser).returning()
+      return  { ok: true, data: row! } as const
     } catch(error) {
-        return { ok: false, errorCode: 'conflict' } as const
+      console.error('Registration error', error)
+      return { ok: false, errorCode: ''+error } as const
     }
 }
 

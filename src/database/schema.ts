@@ -15,12 +15,12 @@ export const profile_pics = pgTable('profile_pic', {
 })
 
 export const users = pgTable('user',{
-    uuid: uuid('uuid').notNull().defaultRandom().primaryKey(),
+    uuid: uuid('uuid').defaultRandom().primaryKey(),
     username: text('username').notNull().unique(),
     pwd: text('pwd').notNull(),
     email: text('email').notNull().unique(),
-    permit_id: integer('permit_id').notNull().$defaultFn(()=> userPermissions.indexOf('user') + 1),
-    registered_on: timestamp('registered_on').$defaultFn(()=> new Date()),
+    permit_id: integer('permit_id').notNull().$defaultFn(()=> userPermissions.indexOf('user')).references(()=>permissions.id),
+    registered_on: timestamp('registered_on').notNull().defaultNow(),
     profile_pic_id: integer('profile_pic_id').references(()=>profile_pics.id),
 })
 
@@ -55,7 +55,7 @@ export const datas = pgTable('data',{
     peripheral_id: integer('peripheral_id').notNull().references(()=>peripherals.id),
     data_type: text('data_type').notNull(),
     value: jsonb('value').notNull(),
-    registered_at: timestamp('register_date').notNull().defaultNow(),
+    registered_at: timestamp('registered_at').notNull().defaultNow(),
 })
 
 export const conditions = pgTable('condition',{
@@ -79,7 +79,7 @@ export const notificationBodies = pgTable('notification_body',{
 export const notifications = pgTable('notification',{
     id: serial('id').primaryKey(),
     notification_type: text('notification_type').notNull(),
-    notification_date: timestamp('notification_date').notNull().$defaultFn(()=> new Date()),
+    notification_date: timestamp('notification_date').notNull().defaultNow(),
     description_id: integer('description_id').notNull().references(()=>notificationBodies.id),
     rule_id: integer('rule_id').notNull().references(()=>rules.id),
 })
