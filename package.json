@@ -4,9 +4,11 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "generate-db": "bun x drizzle-kit generate --schema=./src/database/schema.ts --dialect=postgresql --out=./docker/postgres",
     "dev": "bun --watch run ./src/index.ts",
     "start": "",
-    "migrate": ""
+    "push-db": "bun x drizzle-kit push",
+    "test": "bun test"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5"
@@ -15,7 +17,9 @@
     "@elysiajs/cookie": "^0.8.0",
     "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/swagger": "^1.2.2",
-    "drizzle-orm": "^0.41.0",
+    "drizzle-kit": "^0.31.0",
+    "drizzle-orm": "^0.43.1",
+    "drizzle-typebox": "^0.3.1",
     "elysia": "^1.2.25",
     "postgres": "^3.4.5",
     "sql": "^0.78.0",
