@@ -2,7 +2,7 @@ import Elysia, { t, error } from "elysia"
 import { jwtMiddleware } from "./middleware/jwtMiddleware"
 import { registerGroup } from "../data/group"
 
-export const module = new Elysia({ prefix: '/group' })
+export const group = new Elysia({ prefix: '/group' })
 .use(jwtMiddleware)
   .post('/', async ({ jwtPayload,body }) => {
     const newGroup = { owner_group: jwtPayload.uuid, ...body } // Assuming id is auto-generated
