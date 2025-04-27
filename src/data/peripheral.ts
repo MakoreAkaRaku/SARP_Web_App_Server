@@ -4,7 +4,7 @@ import { db } from "../db"
 import { eq, and, lt, gt } from "drizzle-orm"
 import { createInsertSchema } from "drizzle-typebox"
 
-var registeringSchema = createInsertSchema(peripherals)
+const registeringSchema = createInsertSchema(peripherals)
 
 export const registerPeripheralSchema =  t.Omit(registeringSchema,['id'])
 

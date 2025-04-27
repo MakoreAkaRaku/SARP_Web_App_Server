@@ -6,7 +6,7 @@ import { jwtMiddleware } from "./middleware/jwtMiddleware"
 
 
 export const peripheral = new Elysia({prefix: '/peripheral'})
-.post('/', async ({body}) => {
+.post('/', async ({body, set}) => {
   const newPeripheralData = {
     peripheral_type: body.peripheral_type, 
     short_descr:  (body.short_descr === undefined) ? body.peripheral_type+randomId(): body.short_descr,
@@ -16,19 +16,25 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
   const result = await registerPeripheral(newPeripheralData)
   if(!result.valid) {
     console.error("/peripheral registering failed")
-    return error(401, "This token has already expired or is not correct")
+    throw error(401, "This token has already expired or is not correct")
   }
-  return Response.json({ peripheralUUID: result.body }, { status: 201 })
+  set.status = 201
+  return result.body
 }, {
+  // response: , //TODO: Define the response schema
+  detail: {
+    description: 'Registers a new peripheral, returning the peripheral unique identifier (this endpoint is expecting to be called by a module)',
+    tags: ['peripheral'],
+  },
   body: registerPeripheralSchema
 })
-.post('/:peripheral_id', async ({body, params : {peripheral_id}}) => {
+.post('/:peripheral_id', async ({body, set, params : {peripheral_id}}) => {
   const smth = typeof false
   switch(typeof body.value) {
     case "boolean":
       if (body.data_type !== "boolean") {
         console.log("/periheral_id boolean check failed")
-        return error(422, "Value type does not match data type")
+        throw error(422, "Value type does not match data type")
       }
       break
     case "number":
@@ -40,22 +46,25 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
       if ( ( body.data_type !== "integer" && body.data_type !== "decimal") ||
         (Number.isInteger(body.value) && body.data_type !== "integer") ) {
           console.log("/periheral_id number check failed")
-          return error(422, "Value type does not match data type")
+          throw error(422, "Value type does not match data type")
       }
       break
     default:
       console.log("/periheral_id wrong data type introduced")
-      return error(422, "Invalid data type")
+      throw error(422, "Invalid data type")
   }
   const newDataRecord = {peripheral_id: peripheral_id, ...body}
   const peripheralData = await registerPeripheralData(newDataRecord)
   if(!peripheralData.valid) {
     console.error("/peripheral data query failed")
-    return error(401, "This token has already expired or is not correct")
+    throw error(401, "This token has already expired or is not correct")
   }
-  return Response.json({ peripheralData: peripheralData.body }, { status: 201 })
-},
-{
+  set.status = 201
+},{
+  detail: {
+    description: 'Registers a new data record for a peripheral (this endpoint is expecting to be called by a module)',
+    tags: ['peripheral'],
+  },
   params: t.Object({peripheral_id: t.Number()}),
   body: registerDataSchema
 }
@@ -80,11 +89,16 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
         const peripheralData = await getPeripheralData(peripheral_id,body)
         if(!peripheralData.valid) {
           console.error("/peripheral data query failed")
-          return error(401, "This token has already expired or is not correct")
+          throw error(401, "This token has already expired or is not correct")
         }
-        return Response.json({ peripheralData: peripheralData.body }, { status: 200 })
-      },
-      {
+
+        return peripheralData.body
+      }, {
+        // response: //TODO: Define the response schema
+        detail: {
+          description: 'Get the data of a peripheral by its uuid',
+          tags: ['peripheral'],
+        },
         body: t.Object({
             begin: t.Date({format: 'date-time'}),
             end: t.Date({format: 'date-time'})
