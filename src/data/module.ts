@@ -2,11 +2,14 @@ import { t, type Static } from "elysia"
 import { modules, apiTokens, peripherals, groups } from "../database/schema"
 import { db } from "../db"
 import { eq, and } from "drizzle-orm"
-import { createInsertSchema, createUpdateSchema } from "drizzle-typebox"
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
 
 export const moduleIdSchema = t.Object({
   id: t.String({ format: "uuid" })
 })
+
+const modulesSelect = createSelectSchema(modules)
+export const moduleSchema = t.Omit(modulesSelect,[])
 
 const insertSchema = createInsertSchema(modules)
 export const registerModuleSchema = t.Omit(insertSchema,[])
@@ -51,15 +54,17 @@ export async function getModulesByGroup(user_uuid: string,group_id: number) {
 }
 
 export async function getModules(user_uuid: string) {
-  const moduleList = await db.select({modules, group_name: groups.group_name})
+  const moduleList = await db.select({
+    uuid: modules.uuid, 
+    alias: modules.alias,
+    last_seen: modules.last_seen,
+    belong_group: modules.belong_group,
+    token_api: modules.token_api, 
+  })
     .from(modules)
     .innerJoin(
       apiTokens,
       eq(apiTokens.token_api,modules.token_api)
-    )
-    .leftJoin(
-      groups,
-      eq(groups.id,modules.belong_group)
     )
     .where(eq(apiTokens.user_uuid, user_uuid))
     
