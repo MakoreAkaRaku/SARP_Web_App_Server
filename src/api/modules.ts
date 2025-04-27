@@ -1,7 +1,7 @@
 import Elysia, { t, error } from "elysia";
-import { registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules,registerModuleSchema } from "../../data/module"
-import { jwtMiddleware } from "../middleware/jwtMiddleware";
-import { hasAdminRole } from "../../data/user";
+import { registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules,registerModuleSchema } from "../data/module"
+import { jwtMiddleware } from "./middleware/jwtMiddleware";
+import { hasAdminRole } from "../data/user";
 
 export const module = new Elysia({ prefix: '/module' })
   .post('/', async ({ body }) => {

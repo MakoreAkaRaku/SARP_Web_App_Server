@@ -1,18 +1,35 @@
 import Elysia, {t, error} from "elysia"
-import { getUser, deleteUser, updateUser, updateUserSchema, hasAdminRole, updateUserRole } from "../../data/user"
-import { jwtMiddleware } from "../middleware/jwtMiddleware"
+import { getUser, deleteUser, updateUser, updateUserSchema, hasAdminRole, updateUserRole } from "../data/user"
+import { jwtMiddleware } from "./middleware/jwtMiddleware"
+import { createSelectSchema } from "drizzle-typebox"
+import { users } from "../database/schema"
+
+const userSelectSchema = createSelectSchema(users)
+const userSchema = t.Omit(
+  userSelectSchema,
+  ['pwd', 'uuid', 'registered_on']
+)
+
+
 
 export const user = new Elysia({ prefix: '/user' })
   .use(jwtMiddleware)
   .get('/profile', async ({ jwtPayload }) => {
     const { uuid } = jwtPayload
     const result = await getUser(uuid)
+   
     
     if(!result.valid) {
-      return error(401,"Permission denied")
+      throw error(401,"Permission denied")
     }
 
-    return Response.json(result.body)
+    return result.body
+  }, {
+    response: userSchema,
+    detail: {
+      description: 'Get user profile',
+      
+    }
   })
   .delete('/delete', async({ jwtPayload, cookie }) => {
     const { uuid } = jwtPayload

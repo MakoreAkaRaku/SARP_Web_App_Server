@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia'
-import { api } from './api/index'
+import { api } from './api'
 import swagger from '@elysiajs/swagger'
 
 const mainApp = new Elysia()

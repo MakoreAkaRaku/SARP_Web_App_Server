@@ -1,7 +1,7 @@
 import Elysia, { error, t, } from "elysia"
-import { getUser, login, register, userRegistrySchema, loginUserSchema } from "../../data/user"
-import { configuration } from "../../configuration"
-import { jwtMiddleware, JWTSchema } from "../middleware/jwtMiddleware"
+import { login, register, userRegistrySchema, loginUserSchema } from "../data/user"
+import { configuration } from "../configuration"
+import { jwtMiddleware, JWTSchema } from "./middleware/jwtMiddleware"
 import jwt from "@elysiajs/jwt"
 
 // TODO: Share with jwtMiddleware too
@@ -15,20 +15,20 @@ export const myJwt = jwt({
 })
 
 
-export const authentication = new Elysia({ prefix: '/auth' })
+export const authentication = new Elysia({ prefix: '/authentication' })
   .use(myJwt)
   .post(
     '/register',
     async ({ body, jwt_login, set, cookie }) => {
       const { password, passwordConfirmation } = body
       if (password != passwordConfirmation) {
-        return error(422)
+        throw error(422)
       }
       const result = await register(body)
       if (!result.ok) {
         console.error('/register failed', result.errorCode)
         // It can only fail bc of conflict
-        return error(409)
+        throw error(409)
       }
 
       const { data: registeredUser } = result
@@ -45,22 +45,31 @@ export const authentication = new Elysia({ prefix: '/auth' })
         httpOnly: true,
         sameSite: 'strict',
         secure: true,
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       })
 
       set.headers['authorization'] = accessToken
+      set.status = 201
 
-      return new Response(null, { status: 201 })
+      return { accessToken }
     }, {
-    body: userRegistrySchema
+    body: userRegistrySchema,
+    response: t.Object({
+      accessToken: t.String(),
+    }),
+    detail: {
+      description: 'Register a new user',
+      tags: ['authentication'],
+    },
   })
   .post(
     '/login',
     async ({ body, jwt_login, set, cookie }) => {
       const { username, pwd } = body
-      const result = await login({username, pwd})
+      const result = await login({ username, pwd })
       if (!result.ok) {
         console.error('/login failed', result.errorCode)
-        return error(401)
+        throw error(401)
       }
 
       const { data: user } = result
@@ -76,10 +85,20 @@ export const authentication = new Elysia({ prefix: '/auth' })
         value: accessToken,
         httpOnly: true,
         sameSite: 'strict',
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         secure: true,
       })
+
+      return { accessToken }
     }, {
-    body: loginUserSchema
+    body: loginUserSchema,
+    response: t.Object({
+      accessToken: t.String(),
+    }),
+    detail: {
+      description: 'Logs in with the user credentials',
+      tags: ['authentication'],
+    },
   },
   )
   .use(jwtMiddleware)
@@ -88,7 +107,14 @@ export const authentication = new Elysia({ prefix: '/auth' })
 
     set.headers['authorization'] = undefined
 
-    return new Response(null, { status: 204 })
+    set.status = 204
+    return null
+  }, {
+    response: t.Object({}),
+    detail: {
+      description: 'Logs out the user',
+      tags: ['authentication'],
+    },
   })
 
 

@@ -1,8 +1,9 @@
 import Elysia from "elysia"
 import {module} from './modules'
-import { peripheral } from "./peripheral"
+import { peripheral } from "./peripherals"
 import { authentication } from "./authentication"
 import { user } from "./user"
+import { apiToken } from "./apitoken"
 
 
 export const api = new Elysia({prefix: '/api'})
@@ -10,3 +11,4 @@ export const api = new Elysia({prefix: '/api'})
 .use(peripheral)
 .use(authentication)
 .use(user)
+.use(apiToken)

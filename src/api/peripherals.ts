@@ -1,8 +1,8 @@
 import Elysia, {t, error} from "elysia"
-import { registerPeripheralSchema, registerPeripheral, getPeripheralData, registerPeripheralData , userHasOwnershipOfPeripheral, registerDataSchema } from "../../data/peripheral"
+import { registerPeripheralSchema, registerPeripheral, getPeripheralData, registerPeripheralData , userHasOwnershipOfPeripheral, registerDataSchema } from "../data/peripheral"
 import { randomId } from "elysia/utils"
-import { hasAdminRole } from "../../data/user"
-import { jwtMiddleware } from "../middleware/jwtMiddleware"
+import { hasAdminRole } from "../data/user"
+import { jwtMiddleware } from "./middleware/jwtMiddleware"
 
 
 export const peripheral = new Elysia({prefix: '/peripheral'})

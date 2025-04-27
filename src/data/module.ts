@@ -105,5 +105,6 @@ export async function userHasOwnershipOfModule(request: { userUUID: string, modu
         eq(modules.uuid, request.moduleUUID)
       )
     )
-  return !apiTokensFromModuleUUIDQuery
+  console.log('apiTokensFromModuleUUIDQuery: ', apiTokensFromModuleUUIDQuery)
+  return apiTokensFromModuleUUIDQuery !== undefined
 }

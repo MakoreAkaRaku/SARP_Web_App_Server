@@ -32,7 +32,6 @@ export async function register(opts: {
     });
     try {
       const newUser = {username, email, pwd: hashedPwd}
-      console.log(newUser)
       const [row] = await db.insert(users).values(newUser).returning()
       return  { ok: true, data: row! } as const
     } catch(error) {

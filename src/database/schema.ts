@@ -19,7 +19,7 @@ export const users = pgTable('user',{
     username: text('username').notNull().unique(),
     pwd: text('pwd').notNull(),
     email: text('email').notNull().unique(),
-    permit_id: integer('permit_id').notNull().$defaultFn(()=> userPermissions.indexOf('user')).references(()=>permissions.id),
+    permit_id: integer('permit_id').notNull().$defaultFn(()=> userPermissions.indexOf('user')+1).references(()=>permissions.id),
     registered_on: timestamp('registered_on').notNull().defaultNow(),
     profile_pic_id: integer('profile_pic_id').references(()=>profile_pics.id),
 })
