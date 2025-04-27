@@ -2,6 +2,7 @@ import { error, t } from "elysia"
 import { users, userPermissions } from "../database/schema"
 import { db } from "../db"
 import { eq } from "drizzle-orm"
+import { createSelectSchema } from "drizzle-typebox"
 
 export const userRegistrySchema = t.Object({
   username: t.String({ minLength: 4 }),
@@ -20,6 +21,12 @@ export const updateUserSchema = t.Object({
   email: t.String({ format: 'email' }),
   pwd: t.String({ minLength: 6 })
 })
+
+const userSelectSchema = createSelectSchema(users)
+export const userSchema = t.Omit(
+  userSelectSchema,
+  ['pwd','uuid']
+)
 
 export async function register(opts: {
     username: string,
@@ -75,6 +82,21 @@ export async function getUser(uuid: string) {
     }
 
     return {valid: true, body:row} as const
+}
+
+export async function getUsers() {
+  const row = await db.select({
+    username: users.username,
+    email: users.email,
+    registered_on: users.registered_on, 
+    permit_id: users.permit_id, 
+    profile_pic_id: users.profile_pic_id
+  }).from(users)
+  if (!row) {
+      return {valid: false, body: "Something went wrong"} as const
+  }
+
+  return {valid: true, body:row} as const
 }
 
 export async function verifyUser(
