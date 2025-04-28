@@ -3,8 +3,8 @@ import { jwtMiddleware } from "./middleware/jwtMiddleware"
 import { getGroup, getGroups, registerGroup, deleteGroup, updateGroupSchema, } from "../data/group"
 
 export const group = new Elysia({ prefix: '/group' })
-.use(jwtMiddleware)
-  .post('/', async ({ jwtPayload,body }) => {
+  .use(jwtMiddleware)
+  .post('/', async ({ jwtPayload, body }) => {
     const newGroup = { owner_group: jwtPayload.uuid, ...body } // Assuming id is auto-generated
     const result = await registerGroup(newGroup)
     if (!result.valid) {
@@ -23,7 +23,7 @@ export const group = new Elysia({ prefix: '/group' })
       tags: ['group'],
     },
   })
-  .delete('/:id', async ({ jwtPayload,params: { id } }) => {
+  .delete('/:id', async ({ jwtPayload, params: { id } }) => {
     const groupProperties = { id, group_name: jwtPayload.uuid } // Assuming these are the properties of the group
     const result = await deleteGroup(groupProperties)
     if (!result.valid) {
@@ -51,7 +51,7 @@ export const group = new Elysia({ prefix: '/group' })
       tags: ['group'],
     },
   })
-  .get('/:id', async ({ jwtPayload, params : { id} }) => {
+  .get('/:id', async ({ jwtPayload, params: { id } }) => {
     const groupProperties = { id, owner_group: jwtPayload.uuid } // Assuming these are the properties of the group
     const result = await getGroup(groupProperties)
     if (!result.valid) {
