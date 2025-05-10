@@ -27,7 +27,7 @@ export default function Login({ username, errorMessage }: LoginProps) {
           <h1 class="text-2xxl font-bold mb-4 text-center text-white">Iniciar Sesión</h1>
           <br />
           <Input type="text" name="username" label="Usuario" value={username} required placeholder="Introduce tu usuario" />
-          <Input type="password" name="password" label="Contraseña" required placeholder="Introduce tu contraseña" />
+          <Input type="password" name="pwd" label="Contraseña" required placeholder="Introduce tu contraseña" />
           <ErrorAlert errorMessage={errorMessage} />
         </Form>
         <div class= "flex flex-row gap-x-4 justify-between mb-5">

@@ -5,6 +5,7 @@ import Login from './login'
 import Profile from './profile'
 import Register from './register'
 import { tailwind } from '@gtramontina.com/elysia-tailwind'
+import { configuration } from '../configuration'
 
 export const pages = new Elysia({detail: {
   hide: true,
@@ -21,45 +22,54 @@ export const pages = new Elysia({detail: {
     },
   }))
   .get('/', () => <Home />)
-  .get('/login', () => <Login />)
-  .get('/register', () => <Register />)
-  .post('/login', ({ body }) => {
+  .get('/login', ({ cookie: { authorization } }) => {
+    if (authorization?.value) {
+      return Response.redirect('/', 302)
+    }
+    return <Login />
+  })
+  .get('/register', ({ cookie: { authorization } }) => {
+    if (authorization?.value) {
+      return Response.redirect('/', 302)
+    }
+    return <Register />
+  })
+  .post('/login', async ({ body }) => {
 
     console.log('Somebody is trying to login', body)
 
-    if(body.username === 'marcroman' && body.password === '1234') {
-      console.log('Login success')
-      return new Response(null, {
-        status: 302,
-        headers: {
-          location: '/profile'
-        }
-      })
+    const response = await fetch(configuration.backend_url+'/api/authentication/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+    
+    
+    if (!response.ok) {
+      console.error('Error:', response.statusText)
+      return <Login errorMessage={"Credenciales inválidas"} username={body.username} />
     }
 
-    return <Login errorMessage={"Credenciales inválidas"} username={body.username} />
+    return Response.redirect('/', 302)
   }, {
     body: t.Object({
       username: t.String(),
-      password: t.String()
+      pwd: t.String()
     })
   })
   .post('/register', ({ body }) => {
 
     console.log('Somebody is trying to register', body)
 
-    const req = new Request('/api/register', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
-    
-    console.log('Request', req)
-    if(body.username === 'marcroman' && body.password === '1234') {
-      console.log('Login success')
-      return new Response(null, {
-        status: 302,
-        headers: {
-          location: '/profile'
-        }
-      })
-    }
+    const response = fetch(configuration.backend_url+'/api/authentication/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
 
     return <Register errorMessage={"Credenciales inválidas"} username={body.username} email={body.email} />
   }, {
