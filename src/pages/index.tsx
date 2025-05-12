@@ -21,20 +21,21 @@ export const pages = new Elysia({detail: {
       autoprefixer: false
     },
   }))
-  .get('/', () => <Home />)
-  .get('/login', ({ cookie: { authorization } }) => {
-    if (authorization?.value) {
+  .get('/', ({cookie}) => <Home cookie={cookie} />)
+  .get('/login', ({ cookie}) => {
+    console.log(cookie)
+    if (cookie["authorization"]?.value) {
       return Response.redirect('/', 302)
     }
     return <Login />
   })
-  .get('/register', ({ cookie: { authorization } }) => {
-    if (authorization?.value) {
+  .get('/register', ({cookie}) => {
+    if (cookie["authorization"]?.value) {
       return Response.redirect('/', 302)
     }
     return <Register />
   })
-  .post('/login', async ({ body }) => {
+  .post('/login', async ({cookie, body }) => {
 
     console.log('Somebody is trying to login', body)
 
@@ -52,7 +53,9 @@ export const pages = new Elysia({detail: {
       return <Login errorMessage={"Credenciales inválidas"} username={body.username} />
     }
 
-    return Response.redirect('/', 302)
+    console.log("Response from login: ", response)
+
+    //return Response.redirect('/', 302)
   }, {
     body: t.Object({
       username: t.String(),
