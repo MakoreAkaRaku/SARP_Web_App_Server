@@ -1,10 +1,10 @@
-import BaseLayout from "../components/baselayout";
+import BaseLayout, { type BaseLayoutProps } from "../components/baselayout";
 import { Html } from "@elysiajs/html";
 
-export default function Profile() {
+export default function Profile({ children,navChildren }: BaseLayoutProps) {
 
-  return <BaseLayout title="Profile">
-    <h1>Hola soc un Profile</h1>
-    <a href="/">Home</a>
-  </BaseLayout>
+  return (
+  <BaseLayout title="Profile" {...{ navChildren }}>
+    {children}
+  </BaseLayout>)
 }
