@@ -1,18 +1,10 @@
-import {Html} from "@elysiajs/html"
-import BaseLayout from "../components/baselayout"
-import type { Cookie } from "elysia"
+import BaseLayout, { type BaseLayoutProps } from "../components/baselayout";
+import { Html } from "@elysiajs/html";
 
-interface HomeProps {
-  cookie?: Record<string, Cookie<string | undefined>>
-}
+export default function Home({ children,navChildren }: BaseLayoutProps) {
 
-export default function Home({cookie} : HomeProps) {
-  
   return (
-    <BaseLayout cookie={cookie} title="Home">
-      <h1>Hola soc un home</h1>
-      <p>Hola soc un home</p>
-      <a href="/profile">Go to profile</a>
-    </BaseLayout>
-  )
+  <BaseLayout title="Home" {...{ navChildren }}>
+    {children}
+  </BaseLayout>)
 }
