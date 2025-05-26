@@ -1,5 +1,5 @@
 import Elysia, { t, error } from "elysia";
-import { moduleSchema, registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules, registerModuleSchema } from "../data/module"
+import { modulesSchema, moduleSchema, registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules, registerModuleSchema } from "../data/module"
 import { jwtMiddleware } from "./middleware/jwtMiddleware";
 import { hasAdminRole } from "../data/user";
 
@@ -25,14 +25,13 @@ export const module = new Elysia({ prefix: '/module' })
   })
   .use(jwtMiddleware)
   .get('/', async ({jwtPayload }) => {
-    const { uuid: user_uuid } = jwtPayload
-    const result = await getModules(user_uuid)
+    const result = await getModules(jwtPayload)
     if (!result.valid) {
       throw error(404, result.msg)
     }
     return result.body
   }, {
-    response: t.Array(moduleSchema),
+    response: modulesSchema,
     detail: {
       description: 'Get all modules owned by user',
       tags: ['module'],
@@ -51,7 +50,7 @@ export const module = new Elysia({ prefix: '/module' })
     },
     (app) => app
       .get('/:id', async ({ params }) => {
-        const result = await getModule(params.id)
+        const result = await getModule({uuid: params.id})
         if (!result.valid)
           throw error(404, result.msg)
         return result.body
@@ -69,7 +68,7 @@ export const module = new Elysia({ prefix: '/module' })
         }
         return result.body
       }, {
-        response: moduleSchema,
+        response: updateModuleSchema,
         detail: {
           description: 'Updates a module properties',
           tags: ['module'],

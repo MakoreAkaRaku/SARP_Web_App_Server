@@ -1,16 +1,7 @@
-import jwt from "@elysiajs/jwt"
-import Elysia, { Cookie, t } from "elysia"
-import { configuration } from "../../configuration"
+import Elysia, { Cookie } from "elysia"
+import { sarpJWT } from "../../jwt"
 
-export const JWTSchema = t.Object({
-  uuid: t.String({
-    format: 'uuid'
-  }),
-  username: t.String(),
-  userRole: t.Integer(),
-})
-
-type HeaderCookieSchema = {
+export type HeaderCookieSchema = {
   headers: Record<string, string | undefined>,
   cookie: Record<string, Cookie<string | undefined>>
 }
@@ -19,11 +10,7 @@ type HeaderCookieSchema = {
  * This middleware checks that we have a JWT token in place in the Authorization header.
  */
 export const jwtMiddleware = new Elysia()
-  .use(jwt({
-    name: 'jwt',
-    secret: configuration.jwt_secret!,
-    schema: JWTSchema
-  }))
+  .use(sarpJWT)
   .resolve({ as: 'scoped' }, async ({ cookie, headers, error, jwt }) => {
     const authorization = getAuthenticationToken({ headers, cookie })
 

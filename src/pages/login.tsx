@@ -1,19 +1,19 @@
 import { Html } from "@elysiajs/html";
-import BaseLayout from "../components/baselayout";
+import BaseLayout, { type BaseLayoutProps } from "../components/baselayout";
 import Form from "../components/form";
 import Input from "../components/input";
 import Button from "../components/button";
 import ErrorAlert from "../components/erroralert";
 
-interface LoginProps {
+type LoginProps ={
   errorMessage?: string
-  username?: string
+  username?: string,
 }
 
 
-export default function Login({ username, errorMessage }: LoginProps) {
+export default function Login({ username, errorMessage, ...rest }: LoginProps) {
   return (
-    <BaseLayout title="Iniciar sesión">
+    <BaseLayout title="Iniciar Sesión" {...rest}>
       <div class="flex flex-col items-center gap-y-2 justify-center h-screen">
         <Form
           url="/login"

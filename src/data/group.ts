@@ -7,9 +7,11 @@ import { group } from '../api/group'
 
 
 const insertSchema = createInsertSchema(groups)
+const selectSchema = createSelectSchema(groups)
 const updateSchema = createUpdateSchema(groups, {id: t.Integer()})
 
 export const insertGroupSchema = t.Omit(insertSchema, ['id'])
+export type Group = Static<typeof selectSchema>
 type InsertGroupSchema = Static<typeof insertGroupSchema>
 
 export const updateGroupSchema = t.Omit(updateSchema, ['group_name', 'owner_group'])

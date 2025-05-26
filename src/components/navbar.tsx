@@ -1,5 +1,5 @@
 import { Html } from "@elysiajs/html"
-import { SarpLeafIcon } from "../pages/resources/utils"
+import { SarpLeafIcon } from "../pages/resources/resources"
 
 export interface BaseNavBarProps {
   classes?: string,
@@ -13,7 +13,7 @@ export default function HorizontalNavBar({ classes, children }: BaseNavBarProps)
         <SarpLeafIcon classes="size-8" />
         <span class="text-white font-bold text-center text-xl">SARP</span>
       </a>
-      <div class="flex flex-row justify-stretch border-solid border-2 items-center">
+      <div class="flex flex-row justify-stretch items-center pr-4">
         {children}
       </div>
     </nav>

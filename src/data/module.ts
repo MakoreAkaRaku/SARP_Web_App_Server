@@ -3,16 +3,40 @@ import { modules, apiTokens, peripherals, groups } from "../database/schema"
 import { db } from "../db"
 import { eq, and } from "drizzle-orm"
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
+import { peripheral } from "../api/peripherals"
 
 export const moduleIdSchema = t.Object({
   id: t.String({ format: "uuid" })
 })
 
-const modulesSelect = createSelectSchema(modules)
-export const moduleSchema = t.Omit(modulesSelect,[])
+export const modulesSelect = createSelectSchema(modules)
+
+export const modulesSchema = t.Array(t.Object(
+  {
+    uuid: t.String({ format: "uuid" }),
+    alias: t.String(),
+    last_seen: t.Union([t.Date(),t.Null()]),
+    group_name: t.Union([t.String(),t.Null()]),
+    belong_group: t.Union([t.Integer(),t.Null()]),
+    token_api: t.String({ format: "uuid" })
+  }
+))
+
+export type Modules = Static<typeof modulesSchema>
+
+export const moduleSchema = t.Union([t.Object({
+  uuid: t.String({ format: "uuid" }),
+  alias: t.String(),
+  last_seen: t.Union([t.Date(), t.Null()]),
+  belong_group: t.Union([t.Integer(), t.Null()]),
+  token_api: t.String({ format: "uuid" }),
+  peripheral_id: t.Integer(),
+  peripherals_type: t.String(),
+  peripheral_descr: t.Union([t.String(), t.Null()])
+}),t.Undefined()])
 
 const insertSchema = createInsertSchema(modules)
-export const registerModuleSchema = t.Omit(insertSchema,[])
+export const registerModuleSchema = t.Omit(insertSchema, [])
 type InsertModuleInput = Static<typeof insertSchema>
 
 const updateSchema = createUpdateSchema(modules)
@@ -30,58 +54,53 @@ export async function registerModule(registerInfo: InsertModuleInput) {
   return { valid: true, body: row.uuid } as const
 }
 
-export async function getModulesByGroup(user_uuid: string,group_id: number) {
-  const moduleList = await db.select()
-  .from(groups)
-  .innerJoin(
-    modules,
-    eq(modules.belong_group,groups.id)
-  )
-  .innerJoin(
-    apiTokens,
-    eq(apiTokens.token_api,modules.token_api)
-  )
-  .where(
-    and(
-      eq(groups.id,group_id),
-      eq(apiTokens.user_uuid,user_uuid)
-    )
-  )
-  if (!moduleList) {
-    return { valid: false, msg: "Error on Query" } as const
-  }
-  return { valid: true, body: moduleList} as const
-}
-
-export async function getModules(user_uuid: string) {
+export async function getModules(user: { uuid: string }) {
   const moduleList = await db.select({
-    uuid: modules.uuid, 
+    uuid: modules.uuid,
     alias: modules.alias,
     last_seen: modules.last_seen,
+    group_name: groups.group_name,
     belong_group: modules.belong_group,
-    token_api: modules.token_api, 
+    token_api: modules.token_api,
   })
     .from(modules)
     .innerJoin(
       apiTokens,
-      eq(apiTokens.token_api,modules.token_api)
+      eq(apiTokens.token_api, modules.token_api)
     )
-    .where(eq(apiTokens.user_uuid, user_uuid))
-    
+    .leftJoin(
+      groups,
+      eq(groups.id, modules.belong_group)
+    )
+    .where(eq(apiTokens.user_uuid, user.uuid))
+
   if (!moduleList) {
     return { valid: false, msg: "Error fetching modules" } as const
   }
-  return { valid: true, body: moduleList} as const
+  return { valid: true, body: moduleList } as const
 }
 
-export async function getModule(moduleUIID: string) {
-  const [module] = await db.select()
+export async function getModule(module: { uuid: string }) {
+  const [moduleSpecs] = await db.select({
+    uuid: modules.uuid,
+    alias: modules.alias,
+    last_seen: modules.last_seen,
+    belong_group: modules.belong_group,
+    token_api: modules.token_api,
+    peripheral_id: peripherals.id,
+    peripherals_type: peripherals.peripheral_type,
+    peripheral_descr: peripherals.short_descr,
+  })
     .from(modules)
-    .where(eq(modules.uuid, moduleUIID))
+    .innerJoin(
+      peripherals,
+      eq(modules.uuid, peripherals.parent_module)
+    )
+    .where(eq(modules.uuid, module.uuid))
   if (!module) {
     return { valid: false, msg: "Module Not Found" } as const
   }
-  return { valid: true, body: module} as const
+  return { valid: true, body: moduleSpecs } as const
 }
 
 

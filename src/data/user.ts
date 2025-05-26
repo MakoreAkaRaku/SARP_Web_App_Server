@@ -1,8 +1,9 @@
-import { error, t } from "elysia"
+import { error, ParseError, t } from "elysia"
 import { users, userPermissions } from "../database/schema"
 import { db } from "../db"
-import { eq } from "drizzle-orm"
+import { eq, getTableColumns } from "drizzle-orm"
 import { createSelectSchema } from "drizzle-typebox"
+import type { JWTPayloadSpec } from "@elysiajs/jwt"
 
 export const userRegistrySchema = t.Object({
   username: t.String({ minLength: 4 }),
@@ -42,13 +43,41 @@ export async function register(opts: {
       const [row] = await db.insert(users).values(newUser).returning()
       return  { ok: true, data: row! } as const
     } catch(error) {
-      console.error('Registration error', error)
-      return { ok: false, errorCode: ''+error } as const
+        return { ok: false, reason: 'nombre o email ya en uso' } as const
     }
 }
 
+/**
+ * 
+ * @param params Checks the provided credentials and generates an access token
+ * @returns 
+ */
+export async function generateAccessTokenForCredentials(params: { 
+  username: string, 
+  pwd: string,
+  sign(morePayload: { uuid: string, username: string, userRole: number, } & JWTPayloadSpec): Promise<string>
+}) {
+  const { username, pwd } = params
+  const result = await validateCredentials({ username, pwd })
+  if (!result.ok) {
+    console.error('validate Credentials failed', result.errorCode)
+    throw error(401)
+  }
 
-export async function login(credentials: {username: string, pwd : string}) {
+  const { data: user } = result
+
+  const payload = {
+    uuid: user.uuid,
+    username: user.username,
+    userRole: user.permit_id,
+  }
+
+  const accessToken = await params.sign(payload)
+
+  return { accessToken }
+}
+
+async function validateCredentials(credentials: {username: string, pwd : string}) {
     const {username, pwd: password} = credentials
 
     try {
@@ -76,7 +105,8 @@ export async function deleteUser(uuid: string) {
 }
 
 export async function getUser(uuid: string) {
-    const [row] = await db.select().from(users).where(eq(users.uuid, uuid))
+  const {pwd, uuid: userUuid, ... rest} = getTableColumns(users)
+    const [row] = await db.select(rest).from(users).where(eq(users.uuid, uuid))
     if (!row) {
         return {valid: false, body: "User not found"} as const
     }
@@ -85,13 +115,8 @@ export async function getUser(uuid: string) {
 }
 
 export async function getUsers() {
-  const row = await db.select({
-    username: users.username,
-    email: users.email,
-    registered_on: users.registered_on, 
-    permit_id: users.permit_id, 
-    profile_pic_id: users.profile_pic_id
-  }).from(users)
+  const {uuid,pwd, ... rest} = getTableColumns(users)
+  const row = await db.select(rest).from(users)
   if (!row) {
       return {valid: false, body: "Something went wrong"} as const
   }

@@ -1,54 +1,34 @@
 import Elysia, { error, t, } from "elysia"
-import { login, register, userRegistrySchema, loginUserSchema } from "../data/user"
+import { register, userRegistrySchema, loginUserSchema, generateAccessTokenForCredentials } from "../data/user"
 import { configuration } from "../configuration"
-import { jwtMiddleware, JWTSchema } from "./middleware/jwtMiddleware"
-import jwt from "@elysiajs/jwt"
-
-// TODO: Share with jwtMiddleware too
-export const myJwt = jwt({
-  name: 'jwt_login',
-  secret: configuration.jwt_secret!,
-  schema: JWTSchema,
-  options: {
-    expiresIn: '30d',
-  },
-})
-
+import { jwtMiddleware } from "./middleware/jwtMiddleware"
+import { setAuthorizationCookie } from "../helpers/http"
+import { sarpJWT } from "../jwt"
 
 export const authentication = new Elysia({ prefix: '/authentication' })
-  .use(myJwt)
+  .use(sarpJWT)
   .post(
     '/register',
-    async ({ body, jwt_login, set, cookie }) => {
+    async ({ body, jwt, set, cookie }) => {
       const { password, passwordConfirmation } = body
       if (password != passwordConfirmation) {
         throw error(422)
       }
       const result = await register(body)
       if (!result.ok) {
-        console.error('/register failed', result.errorCode)
+        console.error('/register failed ', result.error)
         // It can only fail bc of conflict
         throw error(409)
       }
 
-      const { data: registeredUser } = result
+      const registeredUser = { username: result.data.username, pwd: password}
 
-      const payload = {
-        uuid: registeredUser.uuid,
-        username: registeredUser.username,
-        userRole: registeredUser.permit_id,
-      }
-      const accessToken = await jwt_login.sign(payload)
-
-      cookie['authorization']?.set({
-        value: accessToken,
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: true,
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      const {accessToken} = await generateAccessTokenForCredentials({
+        ...registeredUser,
+        sign: jwt.sign
       })
 
-      set.headers['authorization'] = accessToken
+      setAuthorizationCookie(cookie, accessToken)
       set.status = 201
 
       return { accessToken }
@@ -64,31 +44,14 @@ export const authentication = new Elysia({ prefix: '/authentication' })
   })
   .post(
     '/login',
-    async ({ body, jwt_login, set, cookie }) => {
-      const { username, pwd } = body
-      const result = await login({ username, pwd })
-      if (!result.ok) {
-        console.error('/login failed', result.errorCode)
-        throw error(401)
-      }
+    async ({ body, jwt, cookie }) => {
 
-      const { data: user } = result
-
-      const payload = {
-        uuid: user.uuid,
-        username: user.username,
-        userRole: user.permit_id,
-      }
-      const accessToken = await jwt_login.sign(payload)
-
-      cookie['authorization']?.set({
-        value: accessToken,
-        httpOnly: true,
-        sameSite: 'strict',
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        secure: true,
+      const {accessToken} = await generateAccessTokenForCredentials({
+        ...body,
+        sign: jwt.sign
       })
 
+      setAuthorizationCookie(cookie, accessToken)
       return { accessToken }
     }, {
     body: loginUserSchema,
