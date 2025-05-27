@@ -25,13 +25,13 @@ export default function ModulesTable({ groupName, moduleList }: ModuleListProps)
         >
           <ChevronDown 
             className="w-2 h-2 fill-white transition-transform" 
-            x-bind:class="open ? 'rotate-180' : ''"
+            x-bind:class="open ? '' : '-rotate-90'"
           />
           
         </Button>
         <h3 
           x-on:click="open = !open" 
-          class="m-0 align-middle ">
+          class="m-0">
             {groupName}
         </h3>
         
@@ -40,13 +40,13 @@ export default function ModulesTable({ groupName, moduleList }: ModuleListProps)
       <table 
         x-show="open"
         x-transition
-        class=" rounded-lg border-collapse table-auto md:table-fixed md:w-auto w-full">
+        class="rounded-lg border-collapse table-auto md:table-fixed md:w-auto w-full">
         <thead class="bg-gray-800 text-lg">
           <tr>
             <th>Alias</th>
             <th>Identificador</th>
-            <th>Última vez visto</th>
             <th>Token API</th>
+            <th>Última vez visto</th>
           </tr>
         </thead>
         <tbody>

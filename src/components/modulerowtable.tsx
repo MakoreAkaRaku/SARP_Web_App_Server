@@ -18,13 +18,17 @@ export function ModuleRow({ properties }: ModuleElementProps) {
   const timeText = getTextFromLastSeen(properties.last_seen);
   return (
     <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer">
-      <td class="border-r border-gray-700" align="center">{properties.alias}</td>
-      <td class="border-r border-gray-700" align="center">{properties.uuid}</td>
-      <td class="border-r border-gray-700 flex flex-row gap-2 items-center" align="center">
-        <ModuleStatus lastSeen={properties.last_seen} />
-        <p>{timeText}</p>
+      <td class="border-r border-gray-700 py-2" align="center">{properties.alias}</td>
+      <td class="border-r border-gray-700 py-2" align="center">
+        <a class="text-green-500 hover:text-white hover:underline" href={"/module/"+properties.uuid}>{properties.uuid}</a>
+        </td>
+      <td class="border-r border-gray-700 py-2" align="center">
+        <a class="text-green-500 hover:text-white hover:underline" href={"/token/"+properties.token_api}>{properties.token_api}</a>
+        </td>
+      <td class="border-gray-700 flex flex-row items-center justify-center gap-3 py-2" align="center">
+      <ModuleStatus lastSeen={properties.last_seen} />
+      <p class="align-middle">{timeText}</p>
       </td>
-      <td align="center">{properties.token_api}</td>
     </tr>)
 }
 
@@ -42,9 +46,9 @@ function getTextFromLastSeen(lastSeen: Date | null): string {
   if (days > 30) return "Hace más de un mes" as const;
   if (days > 0) return `Hace ${days} días` as const;
   if (hours > 0) return `Hace ${hours} horas` as const;
-  if ( 2 <= minutes && minutes < 60) return `Hace ${minutes} minutos` as const;
+  if (2 <= minutes && minutes < 60) return `Hace ${minutes} minutos` as const;
   if (minutes === 1) return "Hace un minuto";
-  if ( 2 <= seconds && seconds < 60) return `Hace ${seconds} segundos` as const;
+  if (2 <= seconds && seconds < 60) return `Hace ${seconds} segundos` as const;
   if (seconds === 1) return "Hace un segundo" as const;
   return "Ahora mismo" as const;
 }
