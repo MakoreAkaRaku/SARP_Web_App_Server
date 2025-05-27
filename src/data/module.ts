@@ -9,8 +9,6 @@ export const moduleIdSchema = t.Object({
   id: t.String({ format: "uuid" })
 })
 
-export const modulesSelect = createSelectSchema(modules)
-
 export const modulesSchema = t.Array(t.Object(
   {
     uuid: t.String({ format: "uuid" }),
@@ -24,16 +22,16 @@ export const modulesSchema = t.Array(t.Object(
 
 export type Modules = Static<typeof modulesSchema>
 
-export const moduleSchema = t.Union([t.Object({
+export const selectModuleSchema = t.Array(t.Object({
   uuid: t.String({ format: "uuid" }),
-  alias: t.String(),
-  last_seen: t.Union([t.Date(), t.Null()]),
-  belong_group: t.Union([t.Integer(), t.Null()]),
-  token_api: t.String({ format: "uuid" }),
-  peripheral_id: t.Integer(),
-  peripherals_type: t.String(),
-  peripheral_descr: t.Union([t.String(), t.Null()])
-}),t.Undefined()])
+    alias: t.String(),
+    last_seen: t.Union([t.Date(),t.Null()]),
+    belong_group: t.Union([t.Number(),t.Null()]),
+    token_api: t.String({ format: "uuid" }),
+    peripheral_id: t.Union([t.Number(), t.Null()]),
+    peripheral_type:t.Union([t.String(),t.Null()]),
+    peripheral_descr: t.Union([t.String(),t.Null()])
+}))
 
 const insertSchema = createInsertSchema(modules)
 export const registerModuleSchema = t.Omit(insertSchema, [])
@@ -81,18 +79,18 @@ export async function getModules(user: { uuid: string }) {
 }
 
 export async function getModule(module: { uuid: string }) {
-  const [moduleSpecs] = await db.select({
+  const moduleSpecs = await db.select({
     uuid: modules.uuid,
     alias: modules.alias,
     last_seen: modules.last_seen,
     belong_group: modules.belong_group,
     token_api: modules.token_api,
     peripheral_id: peripherals.id,
-    peripherals_type: peripherals.peripheral_type,
+    peripheral_type: peripherals.peripheral_type,
     peripheral_descr: peripherals.short_descr,
   })
     .from(modules)
-    .innerJoin(
+    .leftJoin(
       peripherals,
       eq(modules.uuid, peripherals.parent_module)
     )
@@ -129,6 +127,5 @@ export async function userHasOwnershipOfModule(request: { userUUID: string, modu
         eq(modules.uuid, request.moduleUUID)
       )
     )
-  console.log('apiTokensFromModuleUUIDQuery: ', apiTokensFromModuleUUIDQuery)
   return apiTokensFromModuleUUIDQuery !== undefined
 }

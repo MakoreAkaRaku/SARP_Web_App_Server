@@ -1,5 +1,5 @@
 import Elysia, { t, error } from "elysia";
-import { modulesSchema, moduleSchema, registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules, registerModuleSchema } from "../data/module"
+import { modulesSchema, selectModuleSchema, registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules, registerModuleSchema } from "../data/module"
 import { jwtMiddleware } from "./middleware/jwtMiddleware";
 import { hasAdminRole } from "../data/user";
 
@@ -55,7 +55,7 @@ export const module = new Elysia({ prefix: '/module' })
           throw error(404, result.msg)
         return result.body
       }, {
-        response: moduleSchema,
+        response: selectModuleSchema,
         detail: {
           description: 'Get a module by its uuid',
           tags: ['module'],
