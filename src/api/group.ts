@@ -39,7 +39,7 @@ export const group = new Elysia({ prefix: '/group' })
     },
   })
   .get('/', async ({ jwtPayload }) => {
-    const groupList = await getGroups({ owner_group: jwtPayload.uuid })
+    const groupList = await getGroups(jwtPayload)
     if (!groupList.valid) {
       console.error('/group failed', groupList.body)
       throw error(409)
@@ -51,9 +51,8 @@ export const group = new Elysia({ prefix: '/group' })
       tags: ['group'],
     },
   })
-  .get('/:id', async ({ jwtPayload, params: { id } }) => {
-    const groupProperties = { id, owner_group: jwtPayload.uuid } // Assuming these are the properties of the group
-    const result = await getGroup(groupProperties)
+  .get('/:id', async ({ jwtPayload, params }) => {
+    const result = await getGroup(jwtPayload, params)
     if (!result.valid) {
       console.error('/group failed', result.body)
       throw error(409)

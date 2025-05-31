@@ -29,19 +29,19 @@ export async function registerGroup(newGroup: InsertGroupSchema) {
   }
 }
 
-export async function getGroups(user: { owner_group: string }) {
-  const groupList = await db.select().from(groups).where(eq(groups.owner_group, user.owner_group))
+export async function getGroups(user: { uuid: string }) {
+  const groupList = await db.select().from(groups).where(eq(groups.owner_group, user.uuid))
   if (!groupList) {
     return { valid: false, msg: "Error on Query" } as const
   }
   return { valid: true, body: groupList } as const
 }
 
-export async function getGroup(group: { id: number, owner_group: string }) {
+export async function getGroup(user: { uuid: string }, group: { id: number}) {
   const groupList = await db.select().from(groups).where(
     and(
       eq(groups.id, group.id),
-      eq(groups.owner_group, group.owner_group)
+      eq(groups.owner_group, user.uuid)
     ))
   if (!groupList) {
     return { valid: false, msg: "Error on Query" } as const

@@ -49,10 +49,11 @@ export const module = new Elysia({ prefix: '/module' })
       }
     },
     (app) => app
-      .get('/:id', async ({ params }) => {
-        const result = await getModule({uuid: params.id})
-        if (!result.valid)
+      .get('/:id', async ({ params, jwtPayload }) => {
+        const result = await getModule({uuid: params.id}, jwtPayload)
+        if (!result.valid) {
           throw error(404, result.msg)
+        }
         return result.body
       }, {
         response: selectModuleSchema,

@@ -20,9 +20,9 @@ export const modulesSchema = t.Array(t.Object(
   }
 ))
 
-export type Modules = Static<typeof modulesSchema>
+export type ModuleTable = Static<typeof modulesSchema>
 
-export const selectModuleSchema = t.Array(t.Object({
+export const selectModuleSchema = t.Object({
   uuid: t.String({ format: "uuid" }),
     alias: t.String(),
     last_seen: t.Union([t.Date(),t.Null()]),
@@ -31,7 +31,11 @@ export const selectModuleSchema = t.Array(t.Object({
     peripheral_id: t.Union([t.Number(), t.Null()]),
     peripheral_type:t.Union([t.String(),t.Null()]),
     peripheral_descr: t.Union([t.String(),t.Null()])
-}))
+})
+
+export type ModuleSpecs = Static<typeof selectModuleSchema>
+
+export const selectModulesSchema = t.Array(selectModuleSchema)
 
 const insertSchema = createInsertSchema(modules)
 export const registerModuleSchema = t.Omit(insertSchema, [])
@@ -78,8 +82,8 @@ export async function getModules(user: { uuid: string }) {
   return { valid: true, body: moduleList } as const
 }
 
-export async function getModule(module: { uuid: string }) {
-  const moduleSpecs = await db.select({
+export async function getModule(module: { uuid: string },user: { uuid: string }) {
+  const [moduleSpecs] = await db.select({
     uuid: modules.uuid,
     alias: modules.alias,
     last_seen: modules.last_seen,
@@ -94,8 +98,16 @@ export async function getModule(module: { uuid: string }) {
       peripherals,
       eq(modules.uuid, peripherals.parent_module)
     )
-    .where(eq(modules.uuid, module.uuid))
-  if (!module) {
+    .innerJoin(
+      apiTokens,
+      eq(modules.token_api, apiTokens.token_api)
+    )
+    .where(
+      and(
+        eq(modules.uuid, module.uuid),
+        eq(apiTokens.user_uuid, user.uuid)
+      ))
+  if (!moduleSpecs) {
     return { valid: false, msg: "Module Not Found" } as const
   }
   return { valid: true, body: moduleSpecs } as const
