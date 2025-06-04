@@ -13,7 +13,10 @@ import { NavElement } from '../components/navelement'
 import { UserProfile } from '../components/userprofile'
 import { IconDefaultUser } from './resources/resources'
 import Modules from './modules'
-import { getModules } from '../data/module'
+import { getModule, getModules } from '../data/module'
+import Module from './module'
+import { getGroup, getGroups } from '../data/group'
+import { getModulePeripherals } from '../data/peripheral'
 
 const navBarLoginComponent = <NavElement classes='' href="/login">Inicia Sesión</NavElement>
 const navBarAboutComponent = <NavElement classes='' href="/about">Acerca de SARP</NavElement>
@@ -113,6 +116,41 @@ export const pages = new Elysia({
         <h1 class="text-left text-bold">Módulos</h1>
       </div>
     </Modules>)
+  })
+  .get('/modules/:uuid', async ({ params, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    const userModule = await getModule(params, currentUser)
+
+    if (!userModule.valid) {
+      return error(401, userModule.msg)
+    }
+
+    const userGroups = await getGroups(currentUser)
+    
+    if (!userGroups.valid) {
+      return error(401, userGroups.msg)
+    }
+
+    const modulePeripherals = await getModulePeripherals(userModule.body, currentUser)
+
+    if (!modulePeripherals.valid) {
+      return error(401, modulePeripherals.msg)
+    }
+
+    var navbarElements: JSX.Element[] = []
+    navbarElements.push(<UserProfile {...currentUser} />)
+    return (<Module peripheralList={modulePeripherals.body} groupList={userGroups.body} module={userModule.body} navChildren={navbarElements}/>)
+  })
+  .get('/token/:uuid', async ({ params, currentUser}) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    const { uuid } = params
+    var navbarElements: JSX.Element[] = []
+    navbarElements.push(<UserProfile {...currentUser} />)
+
   })
   .post('/login', async ({ cookie, body, jwt }) => {
     var errorMessage

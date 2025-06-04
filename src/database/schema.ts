@@ -1,8 +1,8 @@
 import { serial, text, pgTable, integer, uuid, timestamp, jsonb } from "drizzle-orm/pg-core";
 
-export const userPermissions = ["admin","user","guest"]
-export const peripheralTypes = ["thermometer","hygrometer","valve","other"]
-export const dataTypes = ["boolean","decimal","integer"]
+export const userPermissions = ["admin","user","guest"] as const
+export const peripheralTypes = ["thermometer","hygrometer","valve","other"] as const
+export const dataTypes = ['boolean', 'decimal', 'integer'] as const
 
 export const permissions = pgTable('permission', {
     id: serial('id').notNull().primaryKey(),
@@ -46,14 +46,14 @@ export const modules = pgTable('module',{
 export const peripherals = pgTable('peripheral',{
     id: serial('id').primaryKey(),
     short_descr: text('short_descr'),
-    peripheral_type: text('peripheral_type').notNull(),
+    peripheral_type: text('peripheral_type', {enum: peripheralTypes}).notNull(),
     parent_module: uuid('parent_module').notNull().references(()=>modules.uuid),
 })
 
 export const datas = pgTable('data',{
     id: serial('id').primaryKey(),
     peripheral_id: integer('peripheral_id').notNull().references(()=>peripherals.id),
-    data_type: text('data_type').notNull(),
+    data_type: text('data_type', {enum: dataTypes}).notNull(),
     value: jsonb('value').notNull(),
     registered_at: timestamp('registered_at').notNull().defaultNow(),
 })

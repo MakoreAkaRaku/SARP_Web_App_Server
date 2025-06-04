@@ -1,5 +1,5 @@
 import Elysia, { t, error } from "elysia";
-import { modulesSchema, selectModuleSchema, registerModule, moduleIdSchema, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules, registerModuleSchema } from "../data/module"
+import { selectModuleSchema, registerModule, updateModuleSchema, userHasOwnershipOfModule, updateModule, getModule, getModules, registerModuleSchema, selectModuleWithGroupNameSchema } from "../data/module"
 import { jwtMiddleware } from "./middleware/jwtMiddleware";
 import { hasAdminRole } from "../data/user";
 
@@ -31,7 +31,7 @@ export const module = new Elysia({ prefix: '/module' })
     }
     return result.body
   }, {
-    response: modulesSchema,
+    response: t.Array(selectModuleWithGroupNameSchema),
     detail: {
       description: 'Get all modules owned by user',
       tags: ['module'],
@@ -39,11 +39,11 @@ export const module = new Elysia({ prefix: '/module' })
   })
   .guard(
     {
-      params: moduleIdSchema,
+      params: t.Omit(selectModuleSchema, ['alias', 'last_seen', 'token_api', 'belong_group']),
       beforeHandle: async ({ jwtPayload, params }) => {
-        const config = { userUUID: jwtPayload.uuid, moduleUUID: params.id }
         if (!hasAdminRole(jwtPayload)) {
-          const hasOwnership = await userHasOwnershipOfModule(config)
+          const module = {uuid: params.uuid}
+          const hasOwnership = await userHasOwnershipOfModule(jwtPayload,module)
           if (!hasOwnership) return error(401)
         }
       }

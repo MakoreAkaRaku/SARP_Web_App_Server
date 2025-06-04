@@ -1,41 +1,22 @@
 import { t, type Static } from "elysia"
 import { modules, apiTokens, peripherals, groups } from "../database/schema"
 import { db } from "../db"
-import { eq, and } from "drizzle-orm"
+import { eq, and, getTableColumns } from "drizzle-orm"
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
-import { peripheral } from "../api/peripherals"
+export const selectModuleSchema = createSelectSchema(modules)
 
-export const moduleIdSchema = t.Object({
-  id: t.String({ format: "uuid" })
+export type Module = Static<typeof selectModuleSchema>
+
+export const selectModuleWithGroupNameSchema = t.Object({
+  uuid: t.String({ format: 'uuid' }),
+  alias: t.String(),
+  last_seen: t.Union([t.Date(), t.Null()]),
+  group_name: t.Union([t.String(), t.Null()]),
+  belong_group: t.Union([t.Integer(), t.Null()]),
+  token_api: t.String({ format: 'uuid' }),
 })
+export type ModuleTable = Static<typeof selectModuleWithGroupNameSchema>
 
-export const modulesSchema = t.Array(t.Object(
-  {
-    uuid: t.String({ format: "uuid" }),
-    alias: t.String(),
-    last_seen: t.Union([t.Date(),t.Null()]),
-    group_name: t.Union([t.String(),t.Null()]),
-    belong_group: t.Union([t.Integer(),t.Null()]),
-    token_api: t.String({ format: "uuid" })
-  }
-))
-
-export type ModuleTable = Static<typeof modulesSchema>
-
-export const selectModuleSchema = t.Object({
-  uuid: t.String({ format: "uuid" }),
-    alias: t.String(),
-    last_seen: t.Union([t.Date(),t.Null()]),
-    belong_group: t.Union([t.Number(),t.Null()]),
-    token_api: t.String({ format: "uuid" }),
-    peripheral_id: t.Union([t.Number(), t.Null()]),
-    peripheral_type:t.Union([t.String(),t.Null()]),
-    peripheral_descr: t.Union([t.String(),t.Null()])
-})
-
-export type ModuleSpecs = Static<typeof selectModuleSchema>
-
-export const selectModulesSchema = t.Array(selectModuleSchema)
 
 const insertSchema = createInsertSchema(modules)
 export const registerModuleSchema = t.Omit(insertSchema, [])
@@ -58,12 +39,8 @@ export async function registerModule(registerInfo: InsertModuleInput) {
 
 export async function getModules(user: { uuid: string }) {
   const moduleList = await db.select({
-    uuid: modules.uuid,
-    alias: modules.alias,
-    last_seen: modules.last_seen,
+    ...getTableColumns(modules),
     group_name: groups.group_name,
-    belong_group: modules.belong_group,
-    token_api: modules.token_api,
   })
     .from(modules)
     .innerJoin(
@@ -82,22 +59,9 @@ export async function getModules(user: { uuid: string }) {
   return { valid: true, body: moduleList } as const
 }
 
-export async function getModule(module: { uuid: string },user: { uuid: string }) {
-  const [moduleSpecs] = await db.select({
-    uuid: modules.uuid,
-    alias: modules.alias,
-    last_seen: modules.last_seen,
-    belong_group: modules.belong_group,
-    token_api: modules.token_api,
-    peripheral_id: peripherals.id,
-    peripheral_type: peripherals.peripheral_type,
-    peripheral_descr: peripherals.short_descr,
-  })
+export async function getModule(module: { uuid: string }, user: { uuid: string }) {
+  const [moduleSpecs] = await db.select({ ...getTableColumns(modules) })
     .from(modules)
-    .leftJoin(
-      peripherals,
-      eq(modules.uuid, peripherals.parent_module)
-    )
     .innerJoin(
       apiTokens,
       eq(modules.token_api, apiTokens.token_api)
@@ -128,15 +92,15 @@ export async function updateModule(moduleUIID: string, updatedFields: UpdateModu
 }
 
 
-export async function userHasOwnershipOfModule(request: { userUUID: string, moduleUUID: string }) {
+export async function userHasOwnershipOfModule(user: { uuid: string}, module: {uuid: string}) {
   const [apiTokensFromModuleUUIDQuery] = await db.select({ module_uuid: modules.uuid }).from(modules)
     .innerJoin(apiTokens,
       eq(modules.token_api, apiTokens.token_api)
     )
     .where(
       and(
-        eq(apiTokens.user_uuid, request.userUUID),
-        eq(modules.uuid, request.moduleUUID)
+        eq(apiTokens.user_uuid, user.uuid),
+        eq(modules.uuid, module.uuid)
       )
     )
   return apiTokensFromModuleUUIDQuery !== undefined

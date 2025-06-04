@@ -2,17 +2,13 @@ import { Html } from "@elysiajs/html"
 import { ModuleRow } from "./modulerowtable";
 import Button from "./button";
 import { ChevronDown } from "../pages/resources/resources";
+import type { Module } from "../data/module";
 
 type HTMLProperties = Record<string, any>;
 
 type ModuleListProps = HTMLProperties & {
   groupName: string;
-  moduleList: {
-    alias: string;
-    uuid: string;
-    last_seen: Date | null;
-    token_api: string;
-  }[];
+  moduleList: Module[];
 };
 
 export default function ModulesTable({ groupName, moduleList }: ModuleListProps) {

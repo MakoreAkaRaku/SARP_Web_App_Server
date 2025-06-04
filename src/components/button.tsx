@@ -14,13 +14,15 @@ type BaseButtonProps = {
 }
 
 export type ButtonProps = BaseButtonProps & {
-  color?: 'default' | 'dark' | 'green' | 'red' | 'yellow' | 'purple';
+  color?: 'default' | 'blue' | 'dark' | 'green' | 'red' | 'yellow' | 'purple';
   children?: any
 }
 
 function getClassesForColor(color: ButtonProps['color']) {
   switch (color) {
     case 'default':
+      return "rounded-md p-2 bg-green-700 hover:bg-green-500";
+    case 'blue':
       return "text-blue-700 hover:text-white border border-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-blue-500 dark:text-blue-500 dark:hover:text-white dark:hover:bg-blue-500 dark:focus:ring-blue-800";
     case 'dark':
       return "text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800";

@@ -20,7 +20,7 @@ export function ModuleRow({ properties }: ModuleElementProps) {
     <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer">
       <td class="border-r border-gray-700 py-2" align="center">{properties.alias}</td>
       <td class="border-r border-gray-700 py-2" align="center">
-        <a class="text-green-500 hover:text-white hover:underline" href={"/module/"+properties.uuid}>{properties.uuid}</a>
+        <a class="text-green-500 hover:text-white hover:underline" href={"/modules/"+properties.uuid}>{properties.uuid}</a>
         </td>
       <td class="border-r border-gray-700 py-2" align="center">
         <a class="text-green-500 hover:text-white hover:underline" href={"/token/"+properties.token_api}>{properties.token_api}</a>

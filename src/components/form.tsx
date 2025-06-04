@@ -2,7 +2,6 @@ import {Html } from "@elysiajs/html"
 
 export interface BaseFormProps {
   url: string,
-  headerText: string,
   method: 'POST' | 'GET',
   classes?: string,
   children?: any,

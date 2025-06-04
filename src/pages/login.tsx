@@ -17,7 +17,6 @@ export default function Login({ username, errorMessage, ...rest }: LoginProps) {
       <div class="flex flex-col items-center gap-y-2 justify-center h-screen">
         <Form
           url="/login"
-          headerText="Iniciar Sesión"
           classes="rounded-md shadow-xl bg-gray-800 p-6 sm:p-8 lg:p-10"
           method="POST"
           formActions={

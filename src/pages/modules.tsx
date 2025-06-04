@@ -1,11 +1,11 @@
 import BaseLayout, { type BaseLayoutProps } from "../components/baselayout";
 import ModulesTable from "../components/modulestable";
-import type { Modules } from "../data/module";
 import { Html } from "@elysiajs/html";
 import { EmptyIcon } from "./resources/resources";
+import type { Module, ModuleTable } from "../data/module";
 
 export interface ModuleLayoutProps extends BaseLayoutProps {
-  modules?: Modules
+  modules?: ModuleTable[]
 }
 
 export default function Modules({ modules, navChildren }: ModuleLayoutProps) {
@@ -18,7 +18,7 @@ export default function Modules({ modules, navChildren }: ModuleLayoutProps) {
       group.push(item);
       groups[name] = group;
       return groups;
-    }, {} as Record<string, Modules>);
+    }, {} as Record<string, Module[]>);
     content = (
       <div class="flex flex-col gap-4">
         {Object.entries(moduleList).map(([groupName, modules]) => (

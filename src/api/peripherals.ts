@@ -28,8 +28,7 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
   },
   body: registerPeripheralSchema
 })
-.post('/:peripheral_id', async ({body, set, params : {peripheral_id}}) => {
-  const smth = typeof false
+.post('/data', async ({body, set}) => {
   switch(typeof body.value) {
     case "boolean":
       if (body.data_type !== "boolean") {
@@ -53,8 +52,7 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
       console.log("/periheral_id wrong data type introduced")
       throw error(422, "Invalid data type")
   }
-  const newDataRecord = {peripheral_id: peripheral_id, ...body}
-  const peripheralData = await registerPeripheralData(newDataRecord)
+  const peripheralData = await registerPeripheralData(body)
   if(!peripheralData.valid) {
     console.error("/peripheral data query failed")
     throw error(401, "This token has already expired or is not correct")
@@ -65,7 +63,6 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
     description: 'Registers a new data record for a peripheral (this endpoint is expecting to be called by a module)',
     tags: ['peripheral'],
   },
-  params: t.Object({peripheral_id: t.Number()}),
   body: registerDataSchema
 }
 )
