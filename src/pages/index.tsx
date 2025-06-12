@@ -13,10 +13,10 @@ import { NavElement } from '../components/navelement'
 import { UserProfile } from '../components/userprofile'
 import { IconDefaultUser } from './resources/resources'
 import Modules from './modules'
-import { getModule, getModules } from '../data/module'
+import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnershipOfModule } from '../data/module'
 import Module from './module'
-import { getGroup, getGroups } from '../data/group'
-import { getModulePeripherals } from '../data/peripheral'
+import { getGroups } from '../data/group'
+import { getModulePeripherals, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
 
 const navBarLoginComponent = <NavElement classes='' href="/login">Inicia Sesión</NavElement>
 const navBarAboutComponent = <NavElement classes='' href="/about">Acerca de SARP</NavElement>
@@ -121,6 +121,9 @@ export const pages = new Elysia({
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
+    if (await userHasOwnershipOfModule(currentUser, params) === false) {
+      return error(401, "No tienes permisos para acceder a este módulo")
+    }
     const userModule = await getModule(params, currentUser)
 
     if (!userModule.valid) {
@@ -128,32 +131,74 @@ export const pages = new Elysia({
     }
 
     const userGroups = await getGroups(currentUser)
-    
+
     if (!userGroups.valid) {
       return error(401, userGroups.msg)
     }
 
-    const modulePeripherals = await getModulePeripherals(userModule.body, currentUser)
+    const modulePeripherals = await getModulePeripherals(currentUser, userModule.body)
 
     if (!modulePeripherals.valid) {
       return error(401, modulePeripherals.msg)
     }
+    console.log('Module: ', userModule.body)
+    console.log('Module peripherals: ', modulePeripherals.body)
 
     var navbarElements: JSX.Element[] = []
     navbarElements.push(<UserProfile {...currentUser} />)
-    return (<Module peripheralList={modulePeripherals.body} groupList={userGroups.body} module={userModule.body} navChildren={navbarElements}/>)
+    return (<Module peripheralList={modulePeripherals.body} groupList={userGroups.body} module={userModule.body} navChildren={navbarElements} />)
   })
-  .get('/token/:uuid', async ({ params, currentUser}) => {
+  .get('/token/:uuid', async ({ params, currentUser }) => {
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
     const { uuid } = params
     var navbarElements: JSX.Element[] = []
     navbarElements.push(<UserProfile {...currentUser} />)
+    //TODO: Implement token page
+  })
+  .post('/modules/:uuid', async ({ params, body, currentUser, error }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    if (await userHasOwnershipOfModule(currentUser, params) === false) {
+      return error(401, "No tienes permisos para acceder a este módulo")
+    }
 
+    const newModuleFields = { ...body, belong_group: body.belong_group == -1 ? null : body.belong_group }
+    const userModule = await updateModule(params, newModuleFields)
+
+    if (!userModule.valid) {
+      return error(401, userModule.msg)
+    }
+
+    return Response.redirect("/modules/" + params.uuid, 302)
+  }, {
+    body: updateModuleSchema,
+    params: t.Object({
+      uuid: t.String({ format: 'uuid' })
+    }),
+  })
+  .post('/peripheral/:module_uuid', async ({ params, body, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    if (await userHasOwnershipOfModule(currentUser, {uuid: params.module_uuid}) === false) {
+      return error(401, "No tienes permisos para acceder a este módulo")
+    }
+    const result = await updatePeripheralSpecs(body)
+
+    if(!result.valid) {
+      return error(400,"No se ha podido actualizar el periférico") 
+    }
+    return Response.redirect("/modules/" + params.module_uuid, 302)
+  }, {
+    body: updatePeripheral,
+    params: t.Object({
+      module_uuid: t.String({ format: "uuid" })
+    })
   })
   .post('/login', async ({ cookie, body, jwt }) => {
-    var errorMessage
     console.log('Somebody is trying to login', body)
     try {
       const { accessToken } = await generateAccessTokenForCredentials({
@@ -175,7 +220,6 @@ export const pages = new Elysia({
     })
   })
   .post('/register', async ({ cookie, body, jwt }) => {
-    console.log('Somebody is trying to register', body)
     var errorMessage
     try {
       const { password, confirmPassword } = body
@@ -188,7 +232,6 @@ export const pages = new Elysia({
         errorMessage = result.reason
         throw error(409)
       }
-
       const loginUser = { username: result.data.username, pwd: password }
       const { accessToken } = await generateAccessTokenForCredentials({
         ...loginUser,
@@ -210,8 +253,11 @@ export const pages = new Elysia({
       confirmPassword: t.String({ minLength: 6 })
     })
   })
-  .post('/logout', (cookie) => {
-
+  .post('/logout', ({ cookie }) => {
+    if (!cookie['authorization']) {
+      return Response.redirect("/", 302)
+    }
+    cookie['authorization'].remove()
     return Response.redirect("/", 302)
   })
 

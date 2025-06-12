@@ -16,7 +16,7 @@ export const authentication = new Elysia({ prefix: '/authentication' })
       }
       const result = await register(body)
       if (!result.ok) {
-        console.error('/register failed ', result.error)
+        console.error('/register failed ', result.reason)
         // It can only fail bc of conflict
         throw error(409)
       }

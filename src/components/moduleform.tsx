@@ -27,13 +27,19 @@ export default function ModuleForm({ module, groupList }: ModuleFormProps) {
     text: 'Sin Grupo Asignado'
   })
 
-  const fieldClass = 'bg-inherit w-96 border-b-2 p-2 outline-none focus:text-xl focus:border-green-500/60 border-green-800/60'
+  const fieldClass = 'bg-inherit border-b-2 w-96 p-2 outline-none focus:text-xl focus:border-green-500/60 border-green-800/60'
   return (<form action={`/modules/${module.uuid}`} method="POST" class='text-lg items-center gap-2 flex flex-row justify-between bg-inherit p-6'>
-    <Input type="text" label='UUID' name="uuid" required disabled value={module.uuid}
-      classContainer='flex items-center flex-row gap-8'
-      classLabel=''
-      classInput='bg-inherit'
-    />
+    <div class="flex flex-col gap-2">
+      <Input type="text" label='UUID' name="uuid" required disabled value={module.uuid}
+        classContainer='flex items-center flex-row gap-8'
+        classLabel='font-bold'
+        classInput='bg-inherit font-mono w-96'
+      />
+      <div class='flex items-center flex-row gap-8'>
+        <p class="font-bold">Token</p>
+        <p class='bg-inherit font-mono w-96'>{module.token_api}</p>
+      </div>
+    </div>
     <Input type="text" label='Alias' name="alias" required value={module.alias}
       classContainer='flex items-center flex-row gap-8'
       classLabel=''

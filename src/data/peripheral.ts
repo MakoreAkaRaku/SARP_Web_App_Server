@@ -1,18 +1,23 @@
 import { t, type Static } from "elysia"
-import { peripheralTypes, apiTokens, peripherals, modules, datas } from "../database/schema"
+import { peripheralTypes, apiTokens, peripherals, modules, datas, peripheralStates } from "../database/schema"
 import { db } from "../db"
 import { eq, and, lt, gt, getTableColumns } from "drizzle-orm"
-import { createInsertSchema, createSelectSchema } from "drizzle-typebox"
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
 
 const registeringSchema = createInsertSchema(peripherals)
 export const registerDataSchema = createInsertSchema(datas)
 
-const selectPeripheralSchema = createSelectSchema(peripherals)
+const selectPeripheralSchema = createSelectSchema(peripherals, {id: t.Numeric()})
+
+export const updatePeripheral = t.Omit(selectPeripheralSchema, ['parent_module', 'peripheral_type'])
 
 export const registerPeripheralSchema = t.Omit(registeringSchema, ['id'])
 
-type PeripheralSchema = Static<typeof registeringSchema>
+const registerPeripheralStateSchema = createInsertSchema(peripheralStates)
 
+type PeripheralState = Static<typeof registerPeripheralStateSchema>
+type PeripheralSchema = Static<typeof registeringSchema>
+type UpdatePeripheral = Static<typeof updatePeripheral>
 export type PeripheralData = Static<typeof registerDataSchema>
 export type Peripheral = Static<typeof selectPeripheralSchema>
 
@@ -24,8 +29,11 @@ export async function registerPeripheral(peripheral_data: PeripheralSchema) {
   if (!row) {
     return { valid: false, body: "Non existent module" } as const
   }
-  return { valid: true, body: row } as const
 
+  const originalState : PeripheralState = {peripheral_id: row.id}
+  await db.insert(peripheralStates).values(originalState)
+  
+  return { valid: true, body: row } as const
 }
 
 export async function getModulePeripherals(user: { uuid: string }, module: { uuid: string }) {
@@ -101,5 +109,24 @@ export async function registerPeripheralData(data: PeripheralData) {
     return { valid: false, msg: "Non existent module" } as const
   }
   return { valid: true, body: row } as const
+
+}
+
+export async function updatePeripheralSpecs(peripheral: UpdatePeripheral) {
+  return db.update(peripherals)
+    .set(peripheral)
+    .where(
+      eq(peripherals.id, peripheral.id)
+    )
+    .returning()
+    .then((rows) => {
+      if (rows.length === 0) {
+        return { valid: false, msg: "Peripheral not found" } as const
+      }
+      return { valid: true, body: rows[0] } as const
+    })
+}
+
+export async function updatePeripheralState(peripheral: Peripheral, newState: PeripheralState) {
 
 }

@@ -1,5 +1,5 @@
 import Elysia, {t, error} from "elysia"
-import { registerPeripheralSchema, registerPeripheral, getPeripheralData, registerPeripheralData , userHasOwnershipOfPeripheral, registerDataSchema } from "../data/peripheral"
+import { registerPeripheralSchema, registerPeripheral, getPeripheralData, registerPeripheralData , userHasOwnershipOfPeripheral, registerDataSchema, updatePeripheralSpecs, updatePeripheral } from "../data/peripheral"
 import { randomId } from "elysia/utils"
 import { hasAdminRole } from "../data/user"
 import { jwtMiddleware } from "./middleware/jwtMiddleware"
@@ -70,11 +70,11 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
 .guard(
       {
         params: t.Object({
-          peripheral_id: t.Number(),
+          id: t.Number(),
         }),
         //Checking if the user has ownership of the peripheral or is an admin
         beforeHandle: async ({ jwtPayload, params }) => {
-          const config = { userUUID: jwtPayload.uuid, peripheralID: params.peripheral_id }
+          const config = { userUUID: jwtPayload.uuid, peripheralID: params.id }
           if (!hasAdminRole(jwtPayload)) {
             const hasOwnership = await userHasOwnershipOfPeripheral(config)
             if (!hasOwnership) return error(401)
@@ -82,8 +82,8 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
         }
       },
       (app) => app
-      .get('/:peripheral_id', async ({body, params : {peripheral_id}}) => {
-        const peripheralData = await getPeripheralData(peripheral_id,body)
+      .get('/:id', async ({body, params : {id}}) => {
+        const peripheralData = await getPeripheralData(id,body)
         if(!peripheralData.valid) {
           console.error("/peripheral data query failed")
           throw error(401, "This token has already expired or is not correct")
@@ -101,4 +101,19 @@ export const peripheral = new Elysia({prefix: '/peripheral'})
             end: t.Date({format: 'date-time'})
           })
       })
+      .put('/', async ({body}) => {
+        const result = await updatePeripheralSpecs(body)
+        if(!result.valid) {
+          console.error("/peripheral data registering failed")
+          throw error(401, "This token has already expired or is not correct")
+        }
+        return result.body
+      },
+    {
+        body: updatePeripheral,
+        detail: {
+          description: 'Updates a peripheral description',
+          tags: ['peripheral'],
+        }
+    })
 )

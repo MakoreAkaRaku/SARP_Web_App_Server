@@ -22,11 +22,18 @@ const insertSchema = createInsertSchema(modules)
 export const registerModuleSchema = t.Omit(insertSchema, [])
 type InsertModuleInput = Static<typeof insertSchema>
 
-const updateSchema = createUpdateSchema(modules)
+const updateSchema = createUpdateSchema(modules, {
+  belong_group: t.Numeric(),
+})
 
 export const updateModuleSchema = t.Omit(updateSchema, ['uuid', 'last_seen'])
 
-type UpdateModuleInput = Static<typeof updateModuleSchema>
+// belong_group: number. Which must be mapped to null if value is -1
+type UpdateModuleRequest = Static<typeof updateModuleSchema>
+// Remove the property "belong_group" (omit it) and then replace it with the desired type (number | null)
+type UpdateModuleInput = Omit<UpdateModuleRequest, 'belong_group'> & {
+  belong_group: number | null
+}
 
 export async function registerModule(registerInfo: InsertModuleInput) {
   const [row] = await db.insert(modules).values(registerInfo).returning()
@@ -78,10 +85,10 @@ export async function getModule(module: { uuid: string }, user: { uuid: string }
 }
 
 
-export async function updateModule(moduleUIID: string, updatedFields: UpdateModuleInput) {
+export async function updateModule(module: {uuid: string}, updatedFields: UpdateModuleInput) {
   const [row] = await db.update(modules)
     .set(updatedFields)
-    .where(eq(modules.uuid, moduleUIID))
+    .where(eq(modules.uuid, module.uuid))
     .returning()
 
   if (!row) {

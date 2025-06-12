@@ -18,7 +18,8 @@ export default function Module({ module, groupList, peripheralList, navChildren 
     <div class="flex flex-col p-4 items-left justify-center gap-4">
       <h1>Detalles del Módulo</h1>
       <ModuleForm groupList={groupList} module={module} />
-      <Peripherals peripheralList={peripheralList}/>
+      <h1>Periféricos</h1>
+      <Peripherals module={module} peripheralList={peripheralList}/>
     </div>
   </BaseLayout>)
 }

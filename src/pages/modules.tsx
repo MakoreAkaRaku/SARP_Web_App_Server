@@ -29,7 +29,7 @@ export default function Modules({ modules, navChildren }: ModuleLayoutProps) {
   }
   else {
     content = <div class="self-center flex flex-col gap-4">
-      <EmptyIcon color="#ffffff" classes="size-96 self-center" />
+      <EmptyIcon fill="#ffffff" classes="size-96 self-center" />
       <p class="text-lg">
         Parece ser que no tienes ningún módulo. Registra uno con tu dispositivo android.
       </p>
