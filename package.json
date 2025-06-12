@@ -6,17 +6,21 @@
   "scripts": {
     "generate-db": "bun x drizzle-kit generate --schema=./src/database/schema.ts --dialect=postgresql --out=./docker/postgres",
     "dev": "bun --watch run ./src/index.ts",
-    "start": "",
     "push-db": "bun x drizzle-kit push",
-    "test": "bun test"
+    "test": "bun test",
+    "codegen": "bun --bun x openapi-typescript-codegen --input http://192.168.1.51:3000/swagger/json --output ./merda/generated"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.5"
+    "@types/bun": "^1.2.5",
+    "openapi-typescript-codegen": "^0.29.0"
   },
   "dependencies": {
     "@elysiajs/cookie": "^0.8.0",
+    "@elysiajs/html": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
+    "@elysiajs/static": "^1.3.0",
     "@elysiajs/swagger": "^1.2.2",
+    "@gtramontina.com/elysia-tailwind": "2.0.0",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.43.1",
     "drizzle-typebox": "^0.3.1",
