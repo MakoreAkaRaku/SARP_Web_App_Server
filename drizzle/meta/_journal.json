@@ -15,6 +15,13 @@
       "when": 1749669905589,
       "tag": "0001_medical_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1749844263659,
+      "tag": "0002_square_guardian",
+      "breakpoints": true
     }
   ]
 }
