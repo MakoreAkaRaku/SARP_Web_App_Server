@@ -11,4 +11,5 @@ export const configuration = {
         name: process.env.DATABASE_NAME ?? 'postgres',
     },
     APP_ROOT: process.env.APP_ROOT ?? "root",
+    PUBLIC_DIR: process.env.PUBLIC_DIR ?? './public'
 } as const;

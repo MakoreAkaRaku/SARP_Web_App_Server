@@ -3,11 +3,12 @@ import { api } from './api'
 import swagger from '@elysiajs/swagger'
 import { pages } from './pages'
 import { staticPlugin } from '@elysiajs/static'
+import { configuration } from './configuration'
 
 const mainApp = new Elysia()
   .use(staticPlugin({
     prefix: '/',
-    assets: './public',
+    assets: configuration.PUBLIC_DIR,
   }))
   .use(pages)
 	.use(swagger())
