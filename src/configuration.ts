@@ -1,7 +1,17 @@
 import process from 'process';
 
+
+function parseNodeEnv(): 'production' | 'development' {
+  if(process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'prod') {
+    return 'production'
+  }
+
+  return 'development'
+}
+
 export const configuration = {
-    port: process.env.PORT ?? 8080,
+    NODE_ENV: parseNodeEnv(),
+    PORT: process.env.PORT ? parseInt(process.env.PORT) : 3000,
     jwt_secret: process.env.JWT_SECRET,
     backend_url: process.env.BACKEND_URL ?? 'http://localhost:3030',    
     database: {

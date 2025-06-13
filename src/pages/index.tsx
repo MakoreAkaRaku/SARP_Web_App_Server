@@ -18,6 +18,7 @@ import Module from './module'
 import { getGroups } from '../data/group'
 import { getModulePeripherals, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
 import Dashboard from './dashboard'
+import { tailwindPlugin } from './tailwind'
 
 const navBarLoginComponent = <NavElement classes='' href="/login">Inicia Sesión</NavElement>
 const navBarAboutComponent = <NavElement classes='' href="/about">Acerca de SARP</NavElement>
@@ -27,16 +28,7 @@ export const pages = new Elysia({
   }
 })
   .use(html())
-  .use(tailwind({
-    path: "/public/stylesheet.css",
-    source: "./src/pages/source/styles.css",
-    config: "./tailwind.config.js",
-    options: {
-      minify: false,
-      map: true,
-      autoprefixer: false
-    },
-  }))
+  .use(tailwindPlugin)
   .use(softJwtMiddleware)
   .get('/', ({ currentUser }) => {
     const navbarElements: JSX.Element[] = []
@@ -228,9 +220,7 @@ export const pages = new Elysia({
         sign: jwt.sign
       })
       setAuthorizationCookie(cookie, accessToken)
-      return Response.redirect('/', {
-        status: 302
-      })
+      return Response.redirect('/', 302)
     } catch (error) {
       console.error('Login failed', error)
       return <Login errorMessage={"Credenciales inválidas"} username={body.username} />
@@ -260,9 +250,7 @@ export const pages = new Elysia({
         sign: jwt.sign
       })
       setAuthorizationCookie(cookie, accessToken)
-      return Response.redirect('/', {
-        status: 302
-      })
+      return Response.redirect('/', 302)
     } catch (error) {
       console.error('Register failed: ', errorMessage)
       return <Register errorMessage={errorMessage} username={body.username} />

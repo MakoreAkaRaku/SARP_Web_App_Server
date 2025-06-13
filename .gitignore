@@ -1,3 +1,6 @@
+# build-time generated
+public/stylesheet.css
+
 # Logs
 logs
 *.log

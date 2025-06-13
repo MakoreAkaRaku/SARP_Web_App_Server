@@ -13,8 +13,7 @@ export default function BaseLayout({ title, children, navChildren }: BaseLayoutP
     <html lang="es">
       <head>
         <meta charset="UTF-8" />
-        {/* FIX ME PLEASE */}
-        <link rel="icon" href="/SARP_leaf.svg" />
+        <link rel="icon" href="/public/SARP_leaf.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{pageTitle}</title>
         <link rel="stylesheet" href="/public/stylesheet.css" />
@@ -28,4 +27,6 @@ export default function BaseLayout({ title, children, navChildren }: BaseLayoutP
         </HorizontalNavBar>
         {children}
       </body>
-    </html>)}
+    </html>
+  )
+}
