@@ -17,6 +17,7 @@ import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnersh
 import Module from './module'
 import { getGroups } from '../data/group'
 import { getModulePeripherals, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
+import Dashboard from './dashboard'
 
 const navBarLoginComponent = <NavElement classes='' href="/login">Inicia Sesión</NavElement>
 const navBarAboutComponent = <NavElement classes='' href="/about">Acerca de SARP</NavElement>
@@ -148,14 +149,35 @@ export const pages = new Elysia({
     navbarElements.push(<UserProfile {...currentUser} />)
     return (<Module peripheralList={modulePeripherals.body} groupList={userGroups.body} module={userModule.body} navChildren={navbarElements} />)
   })
-  .get('/token/:uuid', async ({ params, currentUser }) => {
+  .get('/token', async ({ params, currentUser }) => {
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
-    const { uuid } = params
     var navbarElements: JSX.Element[] = []
     navbarElements.push(<UserProfile {...currentUser} />)
     //TODO: Implement token page
+  })
+  .get('/scheduler/:id', async ({ params, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+
+
+    //return <Scheduler />
+  })
+  .get('/dashboard/:id', async ({ params,query, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    return (<Dashboard />)
+  }, {
+    params: t.Object({
+      id: t.String()
+    }),
+    query: t.Object({
+      begin: t.Optional(t.Date({ format: 'date-time' })),
+      end: t.Optional(t.Date({ format: 'date-time' }))
+    })
   })
   .post('/modules/:uuid', async ({ params, body, currentUser, error }) => {
     if (!currentUser) {
@@ -183,13 +205,13 @@ export const pages = new Elysia({
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
-    if (await userHasOwnershipOfModule(currentUser, {uuid: params.module_uuid}) === false) {
+    if (await userHasOwnershipOfModule(currentUser, { uuid: params.module_uuid }) === false) {
       return error(401, "No tienes permisos para acceder a este módulo")
     }
     const result = await updatePeripheralSpecs(body)
 
-    if(!result.valid) {
-      return error(400,"No se ha podido actualizar el periférico") 
+    if (!result.valid) {
+      return error(400, "No se ha podido actualizar el periférico")
     }
     return Response.redirect("/modules/" + params.module_uuid, 302)
   }, {

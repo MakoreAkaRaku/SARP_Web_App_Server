@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     // Environment setup & latest features
-    "lib": ["esnext"],
+    //"lib": ["esnext"],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
     "allowJs": true,
+    "lib": ["es2015", "dom"],
 
     // Bundler mode
     "moduleResolution": "bundler",

@@ -7,6 +7,7 @@
     "generate-db": "bun x drizzle-kit generate --schema=./src/database/schema.ts --dialect=postgresql --out=./docker/postgres",
     "dev": "bun --watch run ./src/index.ts",
     "push-db": "bun x drizzle-kit push",
+    "build-chart": "bun build public/src/linechart.js --outdir=public",
     "test": "bun test",
     "codegen": "bun --bun x openapi-typescript-codegen --input http://192.168.1.51:3000/swagger/json --output ./merda/generated"
   },
@@ -21,6 +22,7 @@
     "@elysiajs/static": "^1.3.0",
     "@elysiajs/swagger": "^1.2.2",
     "@gtramontina.com/elysia-tailwind": "2.0.0",
+    "chart.js": "^4.4.9",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.43.1",
     "drizzle-typebox": "^0.3.1",
