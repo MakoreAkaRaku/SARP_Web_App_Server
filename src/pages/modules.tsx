@@ -8,7 +8,7 @@ export interface ModuleLayoutProps extends BaseLayoutProps {
   modules?: ModuleTable[]
 }
 
-export default function Modules({ modules, navChildren }: ModuleLayoutProps) {
+export default function Modules({ modules, userCredentials }: ModuleLayoutProps) {
   var content: JSX.Element
 
   if (modules != undefined && modules.length > 0) {
@@ -36,7 +36,7 @@ export default function Modules({ modules, navChildren }: ModuleLayoutProps) {
       <a class="text-green-500 hover:text-white underline" href="/about">Saber más</a>
     </div>
   }
-  return (<BaseLayout title="Modules" {...{ navChildren }}>
+  return (<BaseLayout title="Modules" {...{ userCredentials }}>
     <div class="flex flex-col p-4 items-left justify-center gap-4">
       <h1>Mis Módulos</h1>
       {content}

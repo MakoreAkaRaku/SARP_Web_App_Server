@@ -1,27 +1,24 @@
-import { Elysia, t, error } from 'elysia'
 import { Html, html } from '@elysiajs/html'
-import AboutUs from './aboutus'
-import Login from './login'
-import Home from './home'
-import Profile from './profile'
-import Register from './register'
-import { tailwind } from '@gtramontina.com/elysia-tailwind'
-import { softJwtMiddleware } from './middleware/softJwtMiddleware'
+import { Elysia, error, t } from 'elysia'
+import { UserProfile } from '../components/userprofile'
+import { getGroups } from '../data/group'
+import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnershipOfModule } from '../data/module'
+import { getModulePeripherals, getPeripheralData, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
 import { generateAccessTokenForCredentials, getUser, register } from '../data/user'
 import { setAuthorizationCookie } from '../helpers/http'
-import { NavElement } from '../components/navelement'
-import { UserProfile } from '../components/userprofile'
-import { IconDefaultUser } from './resources/resources'
-import Modules from './modules'
-import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnershipOfModule } from '../data/module'
-import Module from './module'
-import { getGroups } from '../data/group'
-import { getModulePeripherals, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
+import AboutUs from './aboutus'
 import Dashboard from './dashboard'
+import Home from './home'
+import Login from './login'
+import { softJwtMiddleware } from './middleware/softJwtMiddleware'
+import Module from './module'
+import Modules from './modules'
+import Profile from './profile'
+import Register from './register'
+import { IconDefaultUser } from './resources/resources'
 import { tailwindPlugin } from './tailwind'
 
-const navBarLoginComponent = <NavElement classes='' href="/login">Inicia Sesión</NavElement>
-const navBarAboutComponent = <NavElement classes='' href="/about">Acerca de SARP</NavElement>
+
 export const pages = new Elysia({
   detail: {
     hide: true,
@@ -31,24 +28,10 @@ export const pages = new Elysia({
   .use(tailwindPlugin)
   .use(softJwtMiddleware)
   .get('/', ({ currentUser }) => {
-    const navbarElements: JSX.Element[] = []
-    if (currentUser != undefined) {
-      console.log(currentUser)
-      navbarElements.push(<UserProfile {...currentUser} />)
-    } else {
-      navbarElements.push(navBarLoginComponent)
-    }
-    return (<Home navChildren={navbarElements} />)
+    return (<Home userCredentials={currentUser} />)
   })
   .get('/about', ({ currentUser }) => {
-    const navbarElements: JSX.Element[] = []
-    if (currentUser != undefined) {
-      console.log(currentUser)
-      navbarElements.push(<UserProfile {...currentUser} />)
-    } else {
-      navbarElements.push(navBarLoginComponent)
-    }
-    return (<AboutUs navChildren={navbarElements} />)
+    return (<AboutUs userCredentials={currentUser} />)
   })
   .get('/profile', async ({ currentUser, error }) => {
     if (!currentUser) {
@@ -60,32 +43,20 @@ export const pages = new Elysia({
     }
     const user = userProfile.body
     console.log(user)
-    const userProfilePicClasses = "size-52 rounded-full ring-offset-2 ring-2 ring-black"
-    const userImg = user.profile_pic_id != null ? //If has an identifier, means that has a profile pic
-      <img class={userProfilePicClasses} src={"/"/*TODO*/} /> :
-      <IconDefaultUser classes={userProfilePicClasses} />
-    const userProfilePic = <a class="flex justify-center items-center size-52 hover:bg-gray-900/20 relative rounded-full bg-gray-700 ring-black" href='/TODO'>
-      {userImg}
-      <div class="flex items-center justify-center text-center absolute w-full h-full opacity-0 hover:opacity-100 duration-300 text-md font-semibold">
-        <span>Cambiar imagen</span>
-      </div>
-    </a>
-    var navbarElements: JSX.Element[] = []
-    navbarElements.push(<UserProfile {...currentUser} />)
-    return <Profile navChildren={navbarElements}>
-      <div class="flex flex-col justify-center items-left gap-y-2 p-12 text-justify  md:w-auto">
-        <h1 class="text-left text-bold">MI PERFIL</h1>
-        <div class="w-full p-4 rounded-lg bg-gray-800/60">
-          {userProfilePic}
-        </div>
-      </div>
-    </Profile>
+    return <Profile user={user} userCredentials={currentUser} />
   })
   .get('/login', ({ currentUser }) => {
     if (currentUser) {
       return Response.redirect('/', 302)
     }
     return <Login />
+  })
+  .get('/logout', ({ cookie }) => {
+    if (!cookie['authorization']) {
+      return Response.redirect("/", 302)
+    }
+    cookie['authorization'].remove()
+    return Response.redirect("/", 302)
   })
   .get('/register', ({ cookie }) => {
     if (cookie["authorization"]?.value) {
@@ -104,7 +75,7 @@ export const pages = new Elysia({
 
     var navbarElements: JSX.Element[] = []
     navbarElements.push(<UserProfile {...currentUser} />)
-    return (<Modules modules={userModules.body} navChildren={navbarElements}>
+    return (<Modules modules={userModules.body} userCredentials={currentUser}>
       <div class="flex flex-col justify-center items-left gap-y-2 p-12 text-justify  md:w-auto">
         <h1 class="text-left text-bold">Módulos</h1>
       </div>
@@ -139,7 +110,14 @@ export const pages = new Elysia({
 
     var navbarElements: JSX.Element[] = []
     navbarElements.push(<UserProfile {...currentUser} />)
-    return (<Module peripheralList={modulePeripherals.body} groupList={userGroups.body} module={userModule.body} navChildren={navbarElements} />)
+    return (
+      <Module
+        userCredentials={currentUser}
+        peripheralList={modulePeripherals.body}
+        groupList={userGroups.body}
+        module={userModule.body}
+      />
+    )
   })
   .get('/token', async ({ params, currentUser }) => {
     if (!currentUser) {
@@ -157,19 +135,31 @@ export const pages = new Elysia({
 
     //return <Scheduler />
   })
-  .get('/dashboard/:id', async ({ params,query, currentUser }) => {
+  .get('/dashboard/:id/', async ({ params, query, currentUser }) => {
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
-    return (<Dashboard />)
+
+    const data = await getPeripheralData(params.id, query)
+    if (!data.valid) {
+      return error(400)
+    }
+
+    return (<Dashboard
+      userCredentials={currentUser}
+      data={data.body.data}
+      range={query}
+      peripheral={data.body.peripheral}
+    />)
   }, {
     params: t.Object({
-      id: t.String()
+      id: t.Numeric()
     }),
-    query: t.Object({
-      begin: t.Optional(t.Date({ format: 'date-time' })),
-      end: t.Optional(t.Date({ format: 'date-time' }))
-    })
+    query: t.Optional(
+      t.Object({
+        begin: t.Date({ format: 'date-time' }),
+        end: t.Date({ format: 'date-time' })
+      }))
   })
   .post('/modules/:uuid', async ({ params, body, currentUser, error }) => {
     if (!currentUser) {
@@ -262,12 +252,5 @@ export const pages = new Elysia({
       password: t.String({ minLength: 6 }),
       confirmPassword: t.String({ minLength: 6 })
     })
-  })
-  .post('/logout', ({ cookie }) => {
-    if (!cookie['authorization']) {
-      return Response.redirect("/", 302)
-    }
-    cookie['authorization'].remove()
-    return Response.redirect("/", 302)
   })
 

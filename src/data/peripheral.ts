@@ -1,15 +1,15 @@
 import { t, type Static } from "elysia"
-import { peripheralTypes, apiTokens, peripherals, modules, datas, peripheralStates } from "../database/schema"
+import { peripheralTypes, apiTokens, peripherals, modules, datas, peripheralStates, pTypes } from "../database/schema"
 import { db } from "../db"
-import { eq, and, lt, gt, getTableColumns } from "drizzle-orm"
+import { eq, and, lt, gt, getTableColumns, lte, gte, desc } from "drizzle-orm"
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
 
 const registeringSchema = createInsertSchema(peripherals)
 export const registerDataSchema = createInsertSchema(datas)
 
-const selectPeripheralSchema = createSelectSchema(peripherals, {id: t.Numeric()})
+export const selectPeripheralSchema = createSelectSchema(peripherals, { id: t.Numeric() })
 
-export const updatePeripheral = t.Omit(selectPeripheralSchema, ['parent_module', 'peripheral_type'])
+export const updatePeripheral = t.Omit(selectPeripheralSchema, ['parent_module', 'p_type'])
 
 export const registerPeripheralSchema = t.Omit(registeringSchema, ['id'])
 
@@ -30,9 +30,6 @@ export async function registerPeripheral(peripheral_data: PeripheralSchema) {
     return { valid: false, body: "Non existent module" } as const
   }
 
-  const originalState : PeripheralState = {peripheral_id: row.id}
-  await db.insert(peripheralStates).values(originalState)
-  
   return { valid: true, body: row } as const
 }
 
@@ -55,6 +52,7 @@ export async function getModulePeripherals(user: { uuid: string }, module: { uui
         eq(apiTokens.user_uuid, user.uuid)
       )
     )
+    .orderBy(peripherals.id)
 
   if (!moduleperipherals) {
     return { valid: false, msg: "Error fetching peripheral" } as const
@@ -63,22 +61,53 @@ export async function getModulePeripherals(user: { uuid: string }, module: { uui
 
 }
 
-export async function getPeripheralData(peripheral_id: number, timelapse: { begin: Date, end: Date }) {
-  const peripheralData = await db.select()
-    .from(peripherals)
-    .innerJoin(datas, eq(datas.peripheral_id, peripherals.id))
-    .where(
-      and(
-        eq(peripherals.id, peripheral_id),
-        lt(datas.registered_at, timelapse.begin),
-        gt(datas.registered_at, timelapse.end)
-      )
+export async function getPeripheralDataType(requestedPeripheral: { id: number }) {
+  const [request] = await db.select(getTableColumns(pTypes))
+    .from(pTypes)
+    .innerJoin(
+      peripherals,
+      eq(pTypes.type, peripherals.p_type)
     )
+    .where(eq(peripherals.id, requestedPeripheral.id))
+  return request
+}
 
+export async function getPeripheralData(peripheral_id: number, timelapse: { begin?: Date, end?: Date }) {
+
+  const peripheralData = timelapse.begin !== undefined && timelapse.end !== undefined ?
+    await db.select()
+      .from(peripherals)
+      .innerJoin(datas, eq(datas.peripheral_id, peripherals.id))
+      .where(
+        and(
+          eq(peripherals.id, peripheral_id),
+          gte(datas.registered_at, timelapse.begin),
+          lte(datas.registered_at, timelapse.end)
+        )
+      )
+      .orderBy(datas.registered_at)
+    :
+    await db.select()
+      .from(peripherals)
+      .innerJoin(datas, eq(datas.peripheral_id, peripherals.id))
+      .where(
+        eq(peripherals.id, peripheral_id)
+      )
+      .orderBy(desc(datas.registered_at))
+      .limit(30)
   if (!peripheralData) {
     return { valid: false, msg: "Error on Query" } as const
   }
-  return { valid: true, body: peripheralData } as const
+  const values= peripheralData.map(item => item.data.value) 
+  const dates = peripheralData.map(item => item.data.registered_at)
+  const formattedResponse = {
+    peripheral: peripheralData[0]?.peripheral,
+    data: {
+      values: timelapse.begin !== undefined && timelapse.end !== undefined ? values : values.reverse(),
+      dates: timelapse.begin !== undefined && timelapse.end !== undefined ? dates : dates.reverse()
+    }
+  }
+  return { valid: true, body: formattedResponse } as const
 }
 
 export async function userHasOwnershipOfPeripheral(request: { userUUID: string, peripheralID: number }) {
@@ -96,7 +125,7 @@ export async function userHasOwnershipOfPeripheral(request: { userUUID: string, 
         eq(peripherals.id, request.peripheralID)
       )
     )
-  return !apiTokensFromPeripheralIDQuery
+  return apiTokensFromPeripheralIDQuery !== undefined
 }
 
 export async function registerPeripheralData(data: PeripheralData) {
@@ -125,8 +154,4 @@ export async function updatePeripheralSpecs(peripheral: UpdatePeripheral) {
       }
       return { valid: true, body: rows[0] } as const
     })
-}
-
-export async function updatePeripheralState(peripheral: Peripheral, newState: PeripheralState) {
-
 }

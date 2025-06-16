@@ -2,6 +2,7 @@ import Elysia from "elysia"
 import { sarpJWT } from "../../jwt"
 import type { HeaderCookieSchema } from "../../api/middleware/jwtMiddleware"
 
+
 export const softJwtMiddleware = new Elysia()
   .use(sarpJWT)
   .resolve({ as: 'scoped' }, async ({ cookie, headers, jwt }) => {

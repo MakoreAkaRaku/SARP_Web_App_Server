@@ -5,7 +5,7 @@ import Input from "../components/input";
 import Button from "../components/button";
 import ErrorAlert from "../components/erroralert";
 
-type LoginProps ={
+interface LoginProps extends BaseLayoutProps{
   errorMessage?: string
   username?: string,
 }

@@ -1,10 +1,10 @@
 import BaseLayout, { type BaseLayoutProps } from "../components/baselayout";
 import { Html } from "@elysiajs/html";
 
-export default function Home({ children,navChildren }: BaseLayoutProps) {
+export default function Home({ children, userCredentials }: BaseLayoutProps) {
 
   return (
-  <BaseLayout title="Home" {...{ navChildren }}>
+  <BaseLayout title="Home" {...{ userCredentials }}>
     {children}
   </BaseLayout>)
 }

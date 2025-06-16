@@ -2,10 +2,9 @@ import { Html } from "@elysiajs/html"
 import BaseLayout, { type BaseLayoutProps } from "../components/baselayout"
 import { SarpLeafIcon } from "./resources/resources"
 
-export default function AboutUs({ navChildren }: BaseLayoutProps) {
-
+export default function AboutUs({userCredentials }: BaseLayoutProps) {
   return (
-    <BaseLayout title="Sobre SARP" {...{ navChildren }}>
+    <BaseLayout title="Sobre SARP" {...{ userCredentials }}>
       <div class="flex flex-col justify-center items-left gap-y-2 p-12 text-justify  md:w-auto">
         <h1 class="text-left">Bienvenido a SARP!</h1>
         <SarpLeafIcon classes="self-center min-w-96 max-w-96 drop-shadow-xl" />

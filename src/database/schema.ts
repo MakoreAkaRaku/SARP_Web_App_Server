@@ -58,10 +58,15 @@ export const modules = pgTable('module', {
   last_seen: timestamp('last_seen'),
 })
 
+export const pTypes = pgTable('peripheral_type', {
+  type: text('type', {enum: peripheralTypes}).notNull().primaryKey(),
+  data_type: text('data_type', { enum: dataTypes }).notNull(),
+})
+
 export const peripherals = pgTable('peripheral', {
   id: serial('id').primaryKey(),
   short_descr: text('short_descr'),
-  peripheral_type: text('peripheral_type', { enum: peripheralTypes }).notNull(),
+  p_type: text('p_type', { enum: peripheralTypes }).notNull().references(() => pTypes.type),
   parent_module: uuid('parent_module').notNull().references(() => modules.uuid),
 })
 
@@ -74,7 +79,6 @@ export const peripheralStates = pgTable('peripheral_state', {
 export const datas = pgTable('data', {
   id: serial('id').primaryKey(),
   peripheral_id: integer('peripheral_id').notNull().references(() => peripherals.id),
-  data_type: text('data_type', { enum: dataTypes }).notNull(),
   value: jsonb('value').notNull(),
   registered_at: timestamp('registered_at').notNull().defaultNow(),
 })

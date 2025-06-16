@@ -59,6 +59,7 @@ export async function getModules(user: { uuid: string }) {
       eq(groups.id, modules.belong_group)
     )
     .where(eq(apiTokens.user_uuid, user.uuid))
+    .orderBy(modules.uuid)
 
   if (!moduleList) {
     return { valid: false, msg: "Error fetching modules" } as const

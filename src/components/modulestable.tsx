@@ -16,6 +16,7 @@ export default function ModulesTable({ groupName, moduleList }: ModuleListProps)
     <div class="flex flex-col gap-4" x-data="{ open: true }">
       <div class="flex flex-row gap-x-2 w-full items-center transition-colors hover:bg-gray-800 rounded-lg p-2 cursor-pointer select-none">
         <Button 
+          x-init="sayHellow()"
           x-on:click="open = !open" 
           class="!flex !flex-row !gap-x-2 !rounded-full !p-2 !m-0 "
         >

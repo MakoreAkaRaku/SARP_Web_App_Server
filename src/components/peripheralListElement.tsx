@@ -15,7 +15,7 @@ export default function PeripheralListElement({ module, data }: PeripheralProps)
   return (
     <div class="flex flex-col w-96 h-52 bg-gray-800/70 rounded-lg shadow-xl p-4 gap-4">
       <div class="flex flex-row gap-2 justify-between">
-        <h2>{data.peripheral_type}</h2>
+        <h2>{data.p_type}</h2>
         <div class="flex flex-row gap-2">
           <a class="size-10 rounded-full hover:bg-gray-800" href={"/dashboard/" + data.id}>
             <IconChartPie stroke="rgb(255,255,255)" fill="none" />

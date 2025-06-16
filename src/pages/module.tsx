@@ -12,9 +12,9 @@ export interface ModuleLayoutProps extends BaseLayoutProps {
   peripheralList: Peripheral[]
 }
 
-export default function Module({ module, groupList, peripheralList, navChildren }: ModuleLayoutProps) {
+export default function Module({ module, groupList, peripheralList, userCredentials }: ModuleLayoutProps) {
   //Make a list of peripherals that the module has
-  return (<BaseLayout title="Modules" {...{ navChildren }}>
+  return (<BaseLayout title="Modules" {...{ userCredentials }}>
     <div class="flex flex-col p-4 items-left justify-center gap-4">
       <h1>Detalles del Módulo</h1>
       <ModuleForm groupList={groupList} module={module} />

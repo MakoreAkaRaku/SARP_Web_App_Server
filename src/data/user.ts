@@ -1,4 +1,4 @@
-import { error, ParseError, t } from "elysia"
+import { error, ParseError, t, type Static } from "elysia"
 import { users, userPermissions } from "../database/schema"
 import { db } from "../db"
 import { eq, getTableColumns } from "drizzle-orm"
@@ -29,6 +29,8 @@ export const userSchema = t.Omit(
   ['pwd','uuid']
 )
 
+export type User = Static<typeof userSchema>
+
 export async function register(opts: {
     username: string,
     email: string,
@@ -43,6 +45,7 @@ export async function register(opts: {
       const [row] = await db.insert(users).values(newUser).returning()
       return  { ok: true, data: row! } as const
     } catch(error) {
+        console.error('Unable to register user', error)
         return { ok: false, reason: 'nombre o email ya en uso' } as const
     }
 }

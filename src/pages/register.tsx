@@ -1,24 +1,23 @@
 import { Html } from "@elysiajs/html";
-import BaseLayout from "../components/baselayout";
+import BaseLayout, { type BaseLayoutProps } from "../components/baselayout";
 import Form from "../components/form";
 import Input from "../components/input";
 import Button from "../components/button";
 import ErrorAlert from "../components/erroralert";
 
-interface RegisterProps {
+interface RegisterProps extends BaseLayoutProps {
   errorMessage?: string
   username?: string
   email?: string
 }
 
 
-export default function Register({ username, email, errorMessage }: RegisterProps) {
+export default function Register({ username, email, errorMessage, userCredentials }: RegisterProps ) {
   return (
-    <BaseLayout title="Registrarse">
+    <BaseLayout title="Registrarse" {...{userCredentials}}>
       <div class="flex flex-col items-center justify-center h-screen gap-y-2">
         <Form
           url="/register"
-          headerText="Registrarse"
           classes="rounded-md shadow-xl bg-gray-800 p-6 sm:p-8 lg:p-10"
           method="POST"
           formActions={
