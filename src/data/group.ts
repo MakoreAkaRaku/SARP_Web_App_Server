@@ -8,14 +8,15 @@ import { group } from '../api/group'
 
 const insertSchema = createInsertSchema(groups)
 const selectSchema = createSelectSchema(groups)
-const updateSchema = createUpdateSchema(groups, {id: t.Integer()})
+const updateSchema = createUpdateSchema(groups, { id: t.Integer(), owner_group: t.String({ format: 'uuid' }) })
 
+type UpdateGroupschema = Static<typeof updateSchema>
 export const insertGroupSchema = t.Omit(insertSchema, ['id'])
 export type Group = Static<typeof selectSchema>
 type InsertGroupSchema = Static<typeof insertGroupSchema>
 
 export const updateGroupSchema = t.Omit(updateSchema, ['group_name', 'owner_group'])
-type DeleteGroupSchema = Static<typeof updateSchema>
+type DeleteGroupSchema = Static<typeof updateGroupSchema>
 
 export async function registerGroup(newGroup: InsertGroupSchema) {
   try {
@@ -30,14 +31,19 @@ export async function registerGroup(newGroup: InsertGroupSchema) {
 }
 
 export async function getGroups(user: { uuid: string }) {
-  const groupList = await db.select().from(groups).where(eq(groups.owner_group, user.uuid))
+  const groupList = await db.select()
+  .from(groups)
+  .where(
+    eq(groups.owner_group, user.uuid)
+  )
+  .orderBy(groups.id)
   if (!groupList) {
     return { valid: false, msg: "Error on Query" } as const
   }
   return { valid: true, body: groupList } as const
 }
 
-export async function getGroup(user: { uuid: string }, group: { id: number}) {
+export async function getGroup(user: { uuid: string }, group: { id: number }) {
   const groupList = await db.select().from(groups).where(
     and(
       eq(groups.id, group.id),
@@ -49,12 +55,25 @@ export async function getGroup(user: { uuid: string }, group: { id: number}) {
   return { valid: true, body: groupList } as const
 }
 
+export async function updateGroupName(updatedGroup: UpdateGroupschema) {
+  const [updated] = await db.update(groups)
+    .set(updatedGroup)
+    .where(
+      and(
+        eq(groups.id, updatedGroup.id),
+        eq(groups.owner_group, updatedGroup.owner_group)
+      )
+    )
+    .returning()
+  return updated
+}
+
 export async function deleteGroup(removedGroup: DeleteGroupSchema) {
   try {
     const [row] = await db.delete(groups)
-    .where(
-      eq(groups.id,removedGroup.id)
-    ).returning()
+      .where(
+        eq(groups.id, removedGroup.id)
+      ).returning()
     if (!row) {
       return { valid: false, body: "Group already exists" } as const
     }

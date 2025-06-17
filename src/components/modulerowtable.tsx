@@ -12,22 +12,19 @@ type ModuleElementProps = {
 }
 
 export function ModuleRow({ properties }: ModuleElementProps) {
-  //TODO: Add a link to the module
-  //TODO: Make a procedure to calculate time and text regarding last seen ( minutes, hours, days ) 
-
   const timeText = getTextFromLastSeen(properties.last_seen);
   return (
     <tr class="border-b border-gray-700 hover:bg-gray-800 transition-colors cursor-pointer">
       <td class="border-r border-gray-700 py-2" align="center">{properties.alias}</td>
       <td class="border-r border-gray-700 py-2" align="center">
-        <a class="text-green-500 hover:text-white hover:underline" href={"/modules/"+properties.uuid}>{properties.uuid}</a>
-        </td>
+        <a class="font-mono text-green-500 hover:text-white hover:underline" href={"/modules/" + properties.uuid}>{properties.uuid}</a>
+      </td>
       <td class="border-r border-gray-700 py-2" align="center">
-        <a class="text-green-500 hover:text-white hover:underline" href={"/token/"+properties.token_api}>{properties.token_api}</a>
-        </td>
+        <p class="font-mono">{properties.token_api}</p>
+      </td>
       <td class="border-gray-700 flex flex-row items-center justify-center gap-3 py-2" align="center">
-      <ModuleStatus lastSeen={properties.last_seen} />
-      <p class="align-middle">{timeText}</p>
+        <ModuleStatus lastSeen={properties.last_seen} />
+        <p class="align-middle">{timeText}</p>
       </td>
     </tr>)
 }

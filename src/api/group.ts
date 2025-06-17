@@ -51,20 +51,6 @@ export const group = new Elysia({ prefix: '/group' })
       tags: ['group'],
     },
   })
-  .get('/:id', async ({ jwtPayload, params }) => {
-    const result = await getGroup(jwtPayload, params)
-    if (!result.valid) {
-      console.error('/group failed', result.body)
-      throw error(409)
-    }
-    return new Response(null, { status: 204 })
-  }, {
-    params: updateGroupSchema,
-    detail: {
-      description: 'Get a group by its id',
-      tags: ['group'],
-    },
-  })
   .put('/:id', async ({ jwtPayload, params: { id }, body }) => {
     const groupProperties = { id, group_name: jwtPayload.uuid } // Assuming these are the properties of the group
     const result = await deleteGroup(groupProperties)

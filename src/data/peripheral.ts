@@ -74,8 +74,9 @@ export async function getPeripheralDataType(requestedPeripheral: { id: number })
 
 export async function getPeripheralData(peripheral_id: number, timelapse: { begin?: Date, end?: Date }) {
 
+  const datasCols = getTableColumns(datas)
   const peripheralData = timelapse.begin !== undefined && timelapse.end !== undefined ?
-    await db.select()
+    await db.select(datasCols)
       .from(peripherals)
       .innerJoin(datas, eq(datas.peripheral_id, peripherals.id))
       .where(
@@ -87,7 +88,7 @@ export async function getPeripheralData(peripheral_id: number, timelapse: { begi
       )
       .orderBy(datas.registered_at)
     :
-    await db.select()
+    await db.select(datasCols)
       .from(peripherals)
       .innerJoin(datas, eq(datas.peripheral_id, peripherals.id))
       .where(
@@ -95,13 +96,16 @@ export async function getPeripheralData(peripheral_id: number, timelapse: { begi
       )
       .orderBy(desc(datas.registered_at))
       .limit(30)
+  const [peripheral] = await db.select()
+    .from(peripherals)
+    .where(eq(peripherals.id, peripheral_id))
   if (!peripheralData) {
     return { valid: false, msg: "Error on Query" } as const
   }
-  const values= peripheralData.map(item => item.data.value) 
-  const dates = peripheralData.map(item => item.data.registered_at)
+  const values = peripheralData.map(data => data.value)
+  const dates = peripheralData.map(data => data.registered_at)
   const formattedResponse = {
-    peripheral: peripheralData[0]?.peripheral,
+    peripheral: peripheral,
     data: {
       values: timelapse.begin !== undefined && timelapse.end !== undefined ? values : values.reverse(),
       dates: timelapse.begin !== undefined && timelapse.end !== undefined ? dates : dates.reverse()

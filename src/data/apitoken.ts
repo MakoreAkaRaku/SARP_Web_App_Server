@@ -2,14 +2,20 @@ import { t, type Static } from "elysia"
 import { apiTokens } from "../database/schema"
 import { db } from "../db"
 import { eq, and } from "drizzle-orm"
-import { createInsertSchema } from "drizzle-typebox"
+import { createInsertSchema, createSelectSchema } from "drizzle-typebox"
 
 const insertSchema = createInsertSchema(apiTokens)
 export const updateApiTokenSchema = t.Object({
   token_api: t.String({ format: 'uuid' })
 })
 type InsertApiToken = Static<typeof insertSchema>
-type ApiToken = {user_uuid: string, token_api: string}
+
+const selectTokenSchema = createSelectSchema(apiTokens)
+type ApiToken = Static<typeof selectTokenSchema>
+
+const TokenObject = t.Omit(selectTokenSchema, ['user_uuid'])
+
+export type Token = Static<typeof TokenObject>
 
 export async function registerApiToken(newApiToken: InsertApiToken) {
   const [row] = await db.insert(apiTokens).values(newApiToken).returning()

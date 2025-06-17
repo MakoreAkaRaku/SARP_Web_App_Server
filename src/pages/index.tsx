@@ -1,7 +1,7 @@
 import { Html, html } from '@elysiajs/html'
 import { Elysia, error, t } from 'elysia'
 import { UserProfile } from '../components/userprofile'
-import { getGroups } from '../data/group'
+import { getGroups, registerGroup, updateGroupName } from '../data/group'
 import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnershipOfModule } from '../data/module'
 import { getModulePeripherals, getPeripheralData, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
 import { generateAccessTokenForCredentials, getUser, register } from '../data/user'
@@ -15,8 +15,10 @@ import Module from './module'
 import Modules from './modules'
 import Profile from './profile'
 import Register from './register'
-import { IconDefaultUser } from './resources/resources'
 import { tailwindPlugin } from './tailwind'
+import Tokens from './token'
+import { getApiTokens, registerApiToken } from '../data/apitoken'
+import Groups from './groups'
 
 
 export const pages = new Elysia({
@@ -72,9 +74,6 @@ export const pages = new Elysia({
     if (!userModules.valid) {
       return error(401, userModules.msg)
     }
-
-    var navbarElements: JSX.Element[] = []
-    navbarElements.push(<UserProfile {...currentUser} />)
     return (<Modules modules={userModules.body} userCredentials={currentUser}>
       <div class="flex flex-col justify-center items-left gap-y-2 p-12 text-justify  md:w-auto">
         <h1 class="text-left text-bold">Módulos</h1>
@@ -108,8 +107,6 @@ export const pages = new Elysia({
     console.log('Module: ', userModule.body)
     console.log('Module peripherals: ', modulePeripherals.body)
 
-    var navbarElements: JSX.Element[] = []
-    navbarElements.push(<UserProfile {...currentUser} />)
     return (
       <Module
         userCredentials={currentUser}
@@ -119,13 +116,27 @@ export const pages = new Elysia({
       />
     )
   })
-  .get('/token', async ({ params, currentUser }) => {
+  .get('/token', async ({ currentUser }) => {
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
-    var navbarElements: JSX.Element[] = []
-    navbarElements.push(<UserProfile {...currentUser} />)
-    //TODO: Implement token page
+
+    const response = await getApiTokens({ user_uuid: currentUser.uuid })
+    if (!response.valid) {
+      return error(400)
+    }
+    return <Tokens userCredentials={currentUser} tokens={response.body} />
+  })
+  .get("/groups", async ({ currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    const result = await getGroups(currentUser)
+    if (!result.valid) {
+      return error(400)
+    }
+    console.log(result.body)
+    return <Groups groups={result.body} userCredentials={currentUser} />
   })
   .get('/scheduler/:id', async ({ params, currentUser }) => {
     if (!currentUser) {
@@ -139,8 +150,20 @@ export const pages = new Elysia({
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
+    let range: { begin: Date | undefined, end: Date | undefined } = {
+      begin: undefined,
+      end: undefined
+    }
 
-    const data = await getPeripheralData(params.id, query)
+    //If we have an acceptable query, we may transofrm the Dates.
+    if (query.end !== undefined && query.begin !== undefined) {
+      range.begin = new Date(query.begin)
+      range.end = new Date(query.end)
+      console.log("Query format: ", query.begin)
+      console.log("Final result: ", range.begin)
+    }
+
+    const data = await getPeripheralData(params.id, range)
     if (!data.valid) {
       return error(400)
     }
@@ -148,7 +171,7 @@ export const pages = new Elysia({
     return (<Dashboard
       userCredentials={currentUser}
       data={data.body.data}
-      range={query}
+      range={range}
       peripheral={data.body.peripheral}
     />)
   }, {
@@ -157,9 +180,43 @@ export const pages = new Elysia({
     }),
     query: t.Optional(
       t.Object({
-        begin: t.Date({ format: 'date-time' }),
-        end: t.Date({ format: 'date-time' })
+        begin: t.String({}),
+        end: t.String({})
       }))
+  })
+  .post('/token', async ({ currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect("/", 302)
+    }
+    await registerApiToken({ user_uuid: currentUser.uuid })
+    return Response.redirect("/token", 302)
+  })
+  .post("/groups/:id", async ({ params, body, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    console.log(body)
+    if (params.id !== undefined)
+      await updateGroupName({ id: params.id, group_name: body.group_name, owner_group: currentUser.uuid })
+    else {
+      const response = await registerGroup({ group_name: body.group_name, owner_group: currentUser.uuid })
+
+      if (!response.valid) {
+        return error(400)
+      }
+    }
+
+    return Response.redirect('/groups', 302)
+
+  }, {
+    params: t.Optional(
+      t.Object({
+        id: t.Numeric()
+      })
+    ),
+    body: t.Object({
+      group_name: t.String()
+    })
   })
   .post('/modules/:uuid', async ({ params, body, currentUser, error }) => {
     if (!currentUser) {
