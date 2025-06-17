@@ -37,7 +37,7 @@ export default function ModulesTable({ groupName, moduleList }: ModuleListProps)
       <table 
         x-show="open"
         x-transition
-        class="rounded-lg border-collapse table-auto md:table-fixed md:w-auto w-full">
+        class="rounded-lg border-collapse table-auto md:table-fixed w-full">
         <thead class="bg-gray-800 text-lg">
           <tr>
             <th>Alias</th>

@@ -29,7 +29,6 @@ export default function BaseLayout({ title, children, userCredentials }: BaseLay
       <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
         <HorizontalNavBar userCredentials={userCredentials} />
         {children}
-<cron-input-ui  class="text-black" color="#258242" required hot-validate value="* * * * *"/>
       </body>
     </html>
   )

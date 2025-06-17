@@ -86,19 +86,9 @@ export const datas = pgTable('data', {
 export const schedules = pgTable('schedule', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
-  peripheral_id: integer('peripheral_state_id').notNull().references(() => peripherals.id),
-  cron_expression: text('cron_expression').notNull()
-  // freq_type: integer('freq_type').notNull(), // 1 One-time, 4 Daily, 8 Daily with relative with freq_interval,  16 Weekly, 32 Monthly.
-  // freq_interval: integer('freq_interval').notNull().default(0),
-  // freq_subday_type: integer('freq_subday_type').notNull(), // 1 = At the specified time, 2 = Seconds, 4 = Minutes, 8 = Hours
-  // freq_subday_interval: integer('freq_subday_interval').notNull().default(0), // 0 = unused, 1 = 1 second, 2 = 2 seconds, etc.
-  // freq_relative_interval: integer('freq_relative_interval').notNull().default(0), // 0 = unused, 1 = First, 2 = Second, 4 = Third, 8 = Fourth, 16 = Last
-  // factor: integer('factor').notNull().default(0), // 0 = unused
-  // active_start_date: integer('active_start_date').notNull().default(0), // YYYYMMDD format, 0 = today
-  // active_end_date: integer('active_end_date').notNull().default(0), // YYYYMMDD format, 0 = no end date
-  // active_start_time: integer('active_start_time').notNull().default(0), // HHMMSS format, 0 = no start time
-  // active_end_time: integer('active_end_time').notNull().default(0), // HHMMSS format, 0 = no end time
-  // enabled: integer('enabled').notNull().default(1), // 0 = Not enabled, 1 = Enabled
+  peripheral_id: integer('peripheral_id').notNull().references(() => peripherals.id),
+  cron_expression: text('cron_expression').notNull(),
+  last_run: timestamp('last_run')
 })
 
 export const notificationBodies = pgTable('notification_body', {

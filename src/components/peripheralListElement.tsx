@@ -20,7 +20,7 @@ export default function PeripheralListElement({ module, data }: PeripheralProps)
           <a class="size-10 rounded-full hover:bg-gray-800" href={"/dashboard/" + data.id}>
             <IconChartPie stroke="rgb(255,255,255)" fill="none" />
           </a>
-          <a class="size-10 rounded-full hover:bg-gray-800" href={"/dashboard/" + data.id}>
+          <a class="size-10 rounded-full hover:bg-gray-800" href={"/scheduler/" + data.id}>
             <IconCalendar fill="rgb(255,255,255)" />
           </a>
         </div>

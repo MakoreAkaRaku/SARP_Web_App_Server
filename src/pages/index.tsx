@@ -3,7 +3,7 @@ import { Elysia, error, t } from 'elysia'
 import { UserProfile } from '../components/userprofile'
 import { getGroups, registerGroup, updateGroupName } from '../data/group'
 import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnershipOfModule } from '../data/module'
-import { getModulePeripherals, getPeripheralData, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
+import { getModulePeripherals, getPeripheralData, getPeripheralDataType, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
 import { generateAccessTokenForCredentials, getUser, register } from '../data/user'
 import { setAuthorizationCookie } from '../helpers/http'
 import AboutUs from './aboutus'
@@ -19,6 +19,8 @@ import { tailwindPlugin } from './tailwind'
 import Tokens from './token'
 import { getApiTokens, registerApiToken } from '../data/apitoken'
 import Groups from './groups'
+import { createSchedule, deleteSchedule, getSchedules, getUserSchedules, scheduleInsertSchema, scheduleUpdateSchema, updateSchedule } from '../data/schedule'
+import Scheduler from './scheduler'
 
 
 export const pages = new Elysia({
@@ -143,8 +145,26 @@ export const pages = new Elysia({
       return Response.redirect('/login', 302)
     }
 
+    const peripheralDataType = await getPeripheralDataType({ id: params.id })
 
-    //return <Scheduler />
+    if (!peripheralDataType) {
+      error(404)
+    }
+
+    const peripheral = {
+      id: params.id,
+      p_type: peripheralDataType!.type
+    }
+    const peripheralSchedules = await getUserSchedules(currentUser)
+    if (!peripheralSchedules.valid) {
+      return error(401, peripheralSchedules.message)
+    }
+    console.log(peripheralSchedules)
+    return <Scheduler userCredentials={currentUser} peripheral={peripheral} schedules={peripheralSchedules.body} />
+  }, {
+    params: t.Object({
+      id: t.Numeric()
+    })
   })
   .get('/dashboard/:id/', async ({ params, query, currentUser }) => {
     if (!currentUser) {
@@ -155,7 +175,7 @@ export const pages = new Elysia({
       end: undefined
     }
 
-    //If we have an acceptable query, we may transofrm the Dates.
+    //If we have an acceptable query, we transform the Dates.
     if (query.end !== undefined && query.begin !== undefined) {
       range.begin = new Date(query.begin)
       range.end = new Date(query.end)
@@ -183,6 +203,69 @@ export const pages = new Elysia({
         begin: t.String({}),
         end: t.String({})
       }))
+  })
+  .post('/scheduler/:id', async ({ params, body, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    const peripheral = await getPeripheralDataType(params)
+    if (peripheral?.type !== 'valve' && peripheral?.type !== 'other') {
+      throw error(401, " Peripheral is not a modal active type, it can't be triggered by a Schedule")
+    }
+    const newSchedule = { ...body, peripheral_id: params.id }
+
+    const result = await createSchedule(newSchedule)
+    if (!result.valid) {
+      return error(401, result.body)
+    }
+
+    return Response.redirect('/scheduler/' + params.id, 302)
+  }, {
+    body: t.Object({
+      name: t.String(),
+      cron_expression: t.String()
+    }),
+    params: t.Object({
+      id: t.Numeric()
+    })
+  })
+  .post('/scheduler/update/:id', async ({ params, body, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+
+    const modifiedSchedule = { ...body, id: params.id }
+
+    const result = await updateSchedule(modifiedSchedule)
+
+
+    if (!result.valid) {
+      return error(401, result.body)
+    }
+
+    return Response.redirect('/scheduler/' + result.body.peripheral_id, 302)
+  }, {
+    body: t.Object({
+      name: t.String()
+    }),
+    params: t.Object({
+      id: t.Numeric()
+    })
+  })
+  .post('/scheduler/delete/:id', async ({ params, body, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    const result = await deleteSchedule(params)
+    if (!result.valid) {
+      return error(401, result.body)
+    }
+
+    return Response.redirect('/scheduler/' + result.body.peripheral_id, 302)
+  }, {
+    params: t.Object({
+      id: t.Numeric()
+    })
   })
   .post('/token', async ({ currentUser }) => {
     if (!currentUser) {
