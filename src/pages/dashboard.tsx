@@ -89,5 +89,3 @@ export default function Dashboard({ peripheral, range, data, userCredentials, }:
     </BaseLayout>
   )
 }
-
-//TODO: format Date() in order to make it into datetime-local format. Also, you should also send the timezone since it's going to be a pain in the ass.... rethink the queries
