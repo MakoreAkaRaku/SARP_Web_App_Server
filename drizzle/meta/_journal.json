@@ -22,6 +22,34 @@
       "when": 1749844263659,
       "tag": "0002_square_guardian",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1749918690578,
+      "tag": "0003_friendly_kinsey_walden",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1749919107514,
+      "tag": "0004_melted_morph",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1750179034148,
+      "tag": "0005_amusing_silver_fox",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1750195831329,
+      "tag": "0006_magical_malice",
+      "breakpoints": true
     }
   ]
 }
