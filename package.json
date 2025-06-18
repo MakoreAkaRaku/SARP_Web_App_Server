@@ -12,6 +12,7 @@
     "prebuild": "bun run generate_tailwind.ts && exit 0 || bun run test",
     "build": "cp -r public/ ./dist/ && bun build src/index.ts --target bun --outdir dist/",
     "predeploy": "bun run build",
+    "migrate": "sh -c ./migrate.sh",
     "deploy": "ssh sarp rm -R /opt/sarp-webapp/* && scp -r ./dist/* sarp:/opt/sarp-webapp",
     "postdeploy": "ssh sarp pm2 restart sarp-webapp",
     "codegen": "bun --bun x openapi-typescript-codegen --input http://192.168.1.51:3000/swagger/json --output ./merda/generated"
@@ -22,12 +23,14 @@
   },
   "dependencies": {
     "@elysiajs/cookie": "^0.8.0",
+    "@elysiajs/cron": "^1.3.0",
     "@elysiajs/html": "^1.2.0",
     "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/static": "^1.3.0",
     "@elysiajs/swagger": "^1.2.2",
     "@gtramontina.com/elysia-tailwind": "2.0.0",
-    "chart.js": "^4.4.9",
+    "cron-parser": "^5.3.0",
+    "date-fns": "^4.1.0",
     "drizzle-kit": "^0.31.0",
     "drizzle-orm": "^0.43.1",
     "drizzle-typebox": "^0.3.1",

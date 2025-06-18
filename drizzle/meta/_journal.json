@@ -50,6 +50,20 @@
       "when": 1750195831329,
       "tag": "0006_magical_malice",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1750266091026,
+      "tag": "0007_slim_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1750276220005,
+      "tag": "0008_spicy_leader",
+      "breakpoints": true
     }
   ]
 }
