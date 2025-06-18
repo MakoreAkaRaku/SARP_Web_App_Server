@@ -28,16 +28,15 @@ export async function createSchedule(scheduleData: Schedule) {
 export async function deleteSchedule(scheduleData: ScheduleUpdate) {
 
   const [result] = await db.delete(schedules)
-  .where(
-    eq(schedules.id, scheduleData.id)
-  ).returning()
+    .where(
+      eq(schedules.id, scheduleData.id)
+    ).returning()
 
-  if(!result) {
-    return { valid: false, body: "Couldn't be deleted"} as const
+  if (!result) {
+    return { valid: false, body: "Couldn't be deleted" } as const
   }
-  return {valid: true, body: result } as const
+  return { valid: true, body: result } as const
 }
-
 
 export async function updateSchedule(scheduleData: ScheduleUpdate) {
   const [row] = await db
@@ -55,16 +54,19 @@ export async function updateSchedule(scheduleData: ScheduleUpdate) {
 }
 
 export async function getSchedules() {
+  let query = undefined
   try {
-    const query = await db.select().from(schedules)
-    if (query) {
-      return { valid: true, body: query } as const
-    }
-
+    query = await db.select().from(schedules)
   } catch (error) {
     console.error('Error getting all schedules: ', error)
     return { valid: false, message: error } as const
   }
+  
+  if (query) {
+    return { valid: true, body: query } as const
+  }
+
+  return { valid: false, body: "Getting all schedules failed" } as const
 }
 
 export async function getUserSchedules(user: { uuid: string }) {
@@ -94,14 +96,14 @@ export async function getUserSchedules(user: { uuid: string }) {
   return { valid: false, message: "Something went wrong" } as const
 }
 
-export function shouldRunNow(cronExpr: string, currentDate: Date) {
+export function shouldRunNow(cronExpr: string, lastRunDate: Date) {
   try {
 
-    const interval = parser.parse(cronExpr, { currentDate: currentDate });
+    const interval = parser.parse(cronExpr, { currentDate: lastRunDate });
     const now = new Date();
     const prev = interval.prev().toDate();
     const next = interval.next().toDate();
-    const obj = { prev, now, next, currentDate }
+    const obj = { prev, now, next, currentDate: lastRunDate }
     console.log(obj)
     return now.getTime() > next.getTime()
 

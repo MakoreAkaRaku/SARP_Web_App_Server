@@ -1,7 +1,7 @@
 import { t, type Static } from "elysia"
 import { peripheralTypes, apiTokens, peripherals, modules, datas, peripheralStates, pTypes } from "../database/schema"
 import { db } from "../db"
-import { eq, and, lt, gt, getTableColumns, lte, gte, desc } from "drizzle-orm"
+import { eq, and, lt, gt, getTableColumns, lte, gte, desc, inArray } from "drizzle-orm"
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
 
 const registeringSchema = createInsertSchema(peripherals)
@@ -143,6 +143,44 @@ export async function registerPeripheralData(data: PeripheralData) {
   }
   return { valid: true, body: row } as const
 
+}
+
+export async function getPeripheralState(peripheral_id: number) {
+  const [result] = await db.select()
+  .from(peripheralStates)
+  .where(
+    eq(peripheralStates.peripheral_id,peripheral_id)
+  )
+
+  if(!result){
+    return {valid:false, body: "Could not get the peripheral state"} as const
+  }
+
+  return {valid:true, body: result} as const
+}
+
+export async function updatePeripheralState(pState: PeripheralState) {
+  const [result] = await db.update(peripheralStates)
+    .set(pState)
+    .where(eq(peripheralStates.peripheral_id, pState.peripheral_id))
+    .returning()
+
+  if (result === undefined) {
+    return { valid: false, body: "Something went wrong updating peripheral State" } as const
+  }
+
+  return { valid: true, body: result } as const
+}
+
+export async function getPeripheralStatesFromStateOn() {
+
+  const result = await db.select()
+    .from(peripheralStates)
+    .where(
+      eq(peripheralStates.state, 'on')
+    )
+
+  return { valid: true, body: result } as const
 }
 
 export async function updatePeripheralSpecs(peripheral: UpdatePeripheral) {

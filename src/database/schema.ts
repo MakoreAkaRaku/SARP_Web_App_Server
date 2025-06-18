@@ -73,7 +73,9 @@ export const peripherals = pgTable('peripheral', {
 export const peripheralStates = pgTable('peripheral_state', {
   peripheral_id: integer('peripheral_id').primaryKey().notNull().references(() => peripherals.id),
   state: text('state', { enum: states }).notNull().default("off"),
-  last_modified: timestamp('last_modified').notNull().defaultNow()
+  last_modified: timestamp('last_modified').notNull().defaultNow(),
+  ticked_time: integer('ticked_time').notNull().default(0),
+  ticks_to_stop: integer('ticks_to_stop').notNull().default(1)
 })
 
 export const datas = pgTable('data', {
