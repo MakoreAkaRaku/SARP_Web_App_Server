@@ -7,7 +7,6 @@
     "generate-db": "bun x drizzle-kit generate --schema=./src/database/schema.ts --dialect=postgresql --out=./docker/postgres",
     "dev": "bun --watch run ./src/index.ts",
     "push-db": "bun x drizzle-kit push",
-    "build-chart": "bun build public/src/linechart.ts --outdir=dist/public",
     "test": "bun test",
     "prebuild": "bun run generate_tailwind.ts && exit 0 || bun run test",
     "build": "cp -r public/ ./dist/ && bun build src/index.ts --target bun --outdir dist/",
