@@ -1,11 +1,33 @@
 import Elysia, { t, error } from "elysia"
-import { registerPeripheralSchema, registerPeripheral, getPeripheralData, registerPeripheralData, userHasOwnershipOfPeripheral, registerDataSchema, updatePeripheralSpecs, updatePeripheral, getPeripheralDataType, selectPeripheralSchema } from "../data/peripheral"
+import { registerPeripheralSchema, registerPeripheral, getPeripheralData, registerPeripheralData, userHasOwnershipOfPeripheral, registerDataSchema, updatePeripheralSpecs, updatePeripheral, getPeripheralDataType, selectPeripheralSchema, getPeripheralState } from "../data/peripheral"
 import { randomId } from "elysia/utils"
 import { hasAdminRole } from "../data/user"
 import { jwtMiddleware } from "./middleware/jwtMiddleware"
 
 
 export const peripheral = new Elysia({ prefix: '/peripheral' })
+  .get("/state/:peripheral_id", async ({ params }) => {
+    const result = await getPeripheralState(params.peripheral_id)
+    if (!result.valid) {
+      return error(400, result.body)
+    }
+
+    return { state: result.body.state }
+  }, {
+    detail: {
+      description: "Returns the state of the peripheral. This endpoint is only meant for the activational peripherals.",
+      tags: ["peripheral"]
+    },
+    response: {
+      400: t.String(),
+      200: t.Object({
+        state: t.String()
+      })
+    },
+    params: t.Object({
+      peripheral_id: t.Numeric()
+    })
+  })
   .post('/', async ({ body, set }) => {
     const newPeripheralData = {
       p_type: body.p_type,

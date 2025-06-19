@@ -4,12 +4,10 @@ import Form from "../components/form"
 import Button from "../components/button"
 import CronTable, { type CronTableListProps } from "../components/crontable"
 import Input from "../components/input"
+import type { Peripheral } from "../data/peripheral"
 
 interface SchedulerProps extends BaseLayoutProps {
-  peripheral: {
-    id: number,
-    p_type: string,
-  }
+  peripheral: Peripheral
 }
 
 export default function Scheduler({ userCredentials, peripheral, schedules }: SchedulerProps & CronTableListProps) {
@@ -36,6 +34,7 @@ export default function Scheduler({ userCredentials, peripheral, schedules }: Sc
               name="name"
               label="Nombre del Schedule"
             />
+
             <cron-input-ui name="cron_expression" class="text-black" color="#258242" required hot-validate value="* * * * *" />
 
           </Form>
@@ -44,3 +43,4 @@ export default function Scheduler({ userCredentials, peripheral, schedules }: Sc
     </BaseLayout>
   )
 }
+//Don't panic, cron-input-ui gives a syntax error in the linter, but is okay :)

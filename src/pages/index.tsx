@@ -3,7 +3,7 @@ import { Elysia, error, t } from 'elysia'
 import { UserProfile } from '../components/userprofile'
 import { getGroups, registerGroup, updateGroupName } from '../data/group'
 import { getModule, getModules, updateModule, updateModuleSchema, userHasOwnershipOfModule } from '../data/module'
-import { getModulePeripherals, getPeripheralData, getPeripheralDataType, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
+import { getModulePeripherals, getPeripheral, getPeripheralData, getPeripheralDataType, updatePeripheral, updatePeripheralSpecs } from '../data/peripheral'
 import { generateAccessTokenForCredentials, getUser, register } from '../data/user'
 import { setAuthorizationCookie } from '../helpers/http'
 import AboutUs from './aboutus'
@@ -19,7 +19,7 @@ import { tailwindPlugin } from './tailwind'
 import Tokens from './token'
 import { getApiTokens, registerApiToken } from '../data/apitoken'
 import Groups from './groups'
-import { createSchedule, deleteSchedule, getSchedules, getUserSchedules, scheduleInsertSchema, scheduleUpdateSchema, updateSchedule } from '../data/schedule'
+import { createSchedule, deleteSchedule, getSchedules, getSchedulesFromUserPeripheralModule as getSchedulesFromUserPeripheral, scheduleInsertSchema, scheduleUpdateSchema, updateSchedule } from '../data/schedule'
 import Scheduler from './scheduler'
 
 
@@ -145,22 +145,22 @@ export const pages = new Elysia({
       return Response.redirect('/login', 302)
     }
 
-    const peripheralDataType = await getPeripheralDataType({ id: params.id })
+    const peripheral = await getPeripheral({ id: params.id })
 
-    if (!peripheralDataType) {
-      error(404)
+    if (!peripheral.valid) {
+      return error(404)
     }
 
-    const peripheral = {
-      id: params.id,
-      p_type: peripheralDataType!.type
+    if(peripheral.body.p_type != 'valve' && peripheral.body.p_type != 'other'){
+      return error(401, "peripheral "+ peripheral.body.p_type +" has no ability to schedule")
     }
-    const peripheralSchedules = await getUserSchedules(currentUser)
+
+    const peripheralSchedules = await getSchedulesFromUserPeripheral(currentUser,{id: peripheral.body.id})
     if (!peripheralSchedules.valid) {
       return error(401, peripheralSchedules.message)
     }
     console.log(peripheralSchedules)
-    return <Scheduler userCredentials={currentUser} peripheral={peripheral} schedules={peripheralSchedules.body} />
+    return <Scheduler userCredentials={currentUser} peripheral={peripheral.body} schedules={peripheralSchedules.body} />
   }, {
     params: t.Object({
       id: t.Numeric()

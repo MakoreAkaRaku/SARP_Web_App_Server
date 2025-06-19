@@ -3,7 +3,7 @@ import { apiTokens, modules, peripherals, schedules } from "../database/schema"
 import { db } from "../db"
 import parser from 'cron-parser'
 import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-typebox"
-import { eq, getTableColumns } from "drizzle-orm"
+import { and, eq, getTableColumns } from "drizzle-orm"
 
 
 export const scheduleInsertSchema = createInsertSchema(schedules)
@@ -61,7 +61,7 @@ export async function getSchedules() {
     console.error('Error getting all schedules: ', error)
     return { valid: false, message: error } as const
   }
-  
+
   if (query) {
     return { valid: true, body: query } as const
   }
@@ -69,7 +69,7 @@ export async function getSchedules() {
   return { valid: false, body: "Getting all schedules failed" } as const
 }
 
-export async function getUserSchedules(user: { uuid: string }) {
+export async function getSchedulesFromUserPeripheralModule(user: { uuid: string }, peripheral: { id: number }) {
   try {
     const query = await db.select(getTableColumns(schedules))
       .from(schedules)
@@ -83,8 +83,12 @@ export async function getUserSchedules(user: { uuid: string }) {
         eq(apiTokens.token_api, modules.token_api)
       )
       .where(
-        eq(apiTokens.user_uuid, user.uuid)
+        and(
+          eq(apiTokens.user_uuid, user.uuid),
+          eq(peripherals.id, peripheral.id)
+        )
       )
+      .orderBy(schedules.id)
     if (query) {
       return { valid: true, body: query } as const
     }

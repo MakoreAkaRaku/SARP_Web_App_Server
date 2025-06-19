@@ -61,6 +61,20 @@ export async function getModulePeripherals(user: { uuid: string }, module: { uui
 
 }
 
+export async function getPeripheral(reqPeripheral: { id: number }) {
+  const [request] = await db.select()
+    .from(peripherals)
+    .where(
+      eq(peripherals.id, reqPeripheral.id),
+    )
+
+  if (!request) {
+    return { valid: false, body: "Couldn't find the peripheral" } as const
+  }
+
+  return { valid: true, body: request } as const
+}
+
 export async function getPeripheralDataType(requestedPeripheral: { id: number }) {
   const [request] = await db.select(getTableColumns(pTypes))
     .from(pTypes)
@@ -68,7 +82,9 @@ export async function getPeripheralDataType(requestedPeripheral: { id: number })
       peripherals,
       eq(pTypes.type, peripherals.p_type)
     )
-    .where(eq(peripherals.id, requestedPeripheral.id))
+    .where(
+      eq(peripherals.id, requestedPeripheral.id),
+    )
   return request
 }
 
@@ -147,16 +163,16 @@ export async function registerPeripheralData(data: PeripheralData) {
 
 export async function getPeripheralState(peripheral_id: number) {
   const [result] = await db.select()
-  .from(peripheralStates)
-  .where(
-    eq(peripheralStates.peripheral_id,peripheral_id)
-  )
+    .from(peripheralStates)
+    .where(
+      eq(peripheralStates.peripheral_id, peripheral_id)
+    )
 
-  if(!result){
-    return {valid:false, body: "Could not get the peripheral state"} as const
+  if (!result) {
+    return { valid: false, body: "Could not get the peripheral state" } as const
   }
 
-  return {valid:true, body: result} as const
+  return { valid: true, body: result } as const
 }
 
 export async function updatePeripheralState(pState: PeripheralState) {
