@@ -151,11 +151,11 @@ export const pages = new Elysia({
       return error(404)
     }
 
-    if(peripheral.body.p_type != 'valve' && peripheral.body.p_type != 'other'){
-      return error(401, "peripheral "+ peripheral.body.p_type +" has no ability to schedule")
+    if (peripheral.body.p_type != 'valve' && peripheral.body.p_type != 'other') {
+      return error(401, "peripheral " + peripheral.body.p_type + " has no ability to schedule")
     }
 
-    const peripheralSchedules = await getSchedulesFromUserPeripheral(currentUser,{id: peripheral.body.id})
+    const peripheralSchedules = await getSchedulesFromUserPeripheral(currentUser, { id: peripheral.body.id })
     if (!peripheralSchedules.valid) {
       return error(401, peripheralSchedules.message)
     }
@@ -278,25 +278,28 @@ export const pages = new Elysia({
     if (!currentUser) {
       return Response.redirect('/login', 302)
     }
-    console.log(body)
-    if (params.id !== undefined)
-      await updateGroupName({ id: params.id, group_name: body.group_name, owner_group: currentUser.uuid })
-    else {
-      const response = await registerGroup({ group_name: body.group_name, owner_group: currentUser.uuid })
-
-      if (!response.valid) {
-        return error(400)
-      }
-    }
-
+    console.log(body, params)
+    await updateGroupName({ id: params.id, group_name: body.group_name, owner_group: currentUser.uuid })
     return Response.redirect('/groups', 302)
-
   }, {
-    params: t.Optional(
-      t.Object({
-        id: t.Numeric()
-      })
-    ),
+    params: t.Object({
+      id: t.Numeric()
+    }),
+    body: t.Object({
+      group_name: t.String()
+    })
+  })
+  .post("/groups", async ({ params, body, currentUser }) => {
+    if (!currentUser) {
+      return Response.redirect('/login', 302)
+    }
+    console.log(body, params)
+    const response = await registerGroup({ group_name: body.group_name, owner_group: currentUser.uuid })
+    if (!response.valid) {
+      return error(401, response.body)
+    }
+    return Response.redirect('/groups', 302)
+  }, {
     body: t.Object({
       group_name: t.String()
     })
