@@ -28,7 +28,7 @@ export default function Groups({ groups, userCredentials }: GroupLayoutProps) {
     <div class="flex flex-col p-4 items-left justify-center gap-4">
       <h1>Mis Grupos</h1>
       {content}
-      <Form method="POST" url="/groups"
+      <Form method="POST" url="/groups/"
       classes="flex flex-row gap-4"
         formActions={
           <Button type="submit" >

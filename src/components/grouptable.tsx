@@ -8,7 +8,7 @@ interface GroupTableProperties {
 
 export default function GroupTable({ groups }: GroupTableProperties) {
   return (
-    <div class="flex flex-col gap-4" x-data="{ open: Ftrue }">
+    <div class="flex flex-col gap-4">
       <table
         class="rounded-lg border-collapse table-auto md:table-fixed md:w-auto w-full"
       >
