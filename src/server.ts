@@ -5,6 +5,7 @@ import { pages } from './pages'
 import { staticPlugin } from '@elysiajs/static'
 import { configuration } from './configuration'
 import { cronApp } from './cron'
+import { swaggerPlugin } from './swaggerPlugin'
 
 export const mainApp = new Elysia()
   .use(staticPlugin({
@@ -12,5 +13,5 @@ export const mainApp = new Elysia()
   }))
   .use(pages)
   .use(cronApp)
-	.use(swagger())
+	.use(swaggerPlugin)
 	.use(api)

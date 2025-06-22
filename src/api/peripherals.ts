@@ -43,12 +43,22 @@ export const peripheral = new Elysia({ prefix: '/peripheral' })
     set.status = 201
     return result.body
   }, {
-    // response: , //TODO: Define the response schema
     detail: {
       description: 'Registers a new peripheral, returning the peripheral unique identifier (this endpoint is expecting to be called by a module)',
       tags: ['peripheral'],
     },
-    body: registerPeripheralSchema
+    body: registerPeripheralSchema,
+    response: t.Object({
+      id: t.Number(),
+      short_descr: t.Union([t.Null(), t.String()]),
+      p_type: t.Union([
+        t.Literal('hygrometer'),
+        t.Literal('thermometer'),
+        t.Literal('valve'),
+        t.Literal('other')]
+      ),
+      parent_module: t.String({format: 'uuid'}),
+    })
   })
   .post('/data', async ({ body, set }) => {
     const peripheral = await getPeripheralDataType({ id: body.peripheral_id })

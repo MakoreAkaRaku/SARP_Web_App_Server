@@ -11,6 +11,7 @@ function parseNodeEnv(): 'production' | 'development' {
 
 export const configuration = {
     NODE_ENV: parseNodeEnv(),
+    SWAGGER_ENABLED: process.env.SWAGGER_ENABLED === 'true',
     PORT: process.env.PORT ? parseInt(process.env.PORT) : 3000,
     jwt_secret: process.env.JWT_SECRET,
     backend_url: process.env.BACKEND_URL ?? 'http://localhost:3030',    
