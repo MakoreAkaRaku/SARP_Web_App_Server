@@ -41,7 +41,7 @@ export const peripheral = new Elysia({ prefix: '/peripheral' })
       throw error(401, "This token has already expired or is not correct")
     }
     set.status = 201
-    return result.body
+    return {id: result.body.id}
   }, {
     detail: {
       description: 'Registers a new peripheral, returning the peripheral unique identifier (this endpoint is expecting to be called by a module)',
@@ -49,15 +49,7 @@ export const peripheral = new Elysia({ prefix: '/peripheral' })
     },
     body: registerPeripheralSchema,
     response: t.Object({
-      id: t.Number(),
-      short_descr: t.Union([t.Null(), t.String()]),
-      p_type: t.Union([
-        t.Literal('hygrometer'),
-        t.Literal('thermometer'),
-        t.Literal('valve'),
-        t.Literal('other')]
-      ),
-      parent_module: t.String({format: 'uuid'}),
+      id: t.Number()
     })
   })
   .post('/data', async ({ body, set }) => {
