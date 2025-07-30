@@ -1,0 +1,16 @@
+
+services:
+  db:
+    image: postgres
+    restart: unless-stopped
+    env_file: /etc/sarp-webapp/.env
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_PASSWORD: ${DATABASE_PWD}
+      INITDB_TZ: 'UTC'
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+    volumes:
+      - /var/sarp-webapp/postgres/data:/var/lib/postgresql/data
+    ports:
+      - 127.0.0.1:${DATABASE_PORT}:${DATABASE_PORT}
