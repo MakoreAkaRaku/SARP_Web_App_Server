@@ -63,13 +63,20 @@ export const module = new Elysia({ prefix: '/module' })
         },
       })
       .put('/:id', async ({ params, body }) => {
-        const result = await updateModule(params.id, body)
+        const result = await updateModule({uuid: params.id}, body)
         if (!result.valid) {
           throw error(404, result.msg)
         }
         return result.body
       }, {
-        response: updateModuleSchema,
+        response: t.Object({
+          uuid: t.String({format: 'uuid'}),
+          alias: t.String(),
+          token_api: t.String(),
+          last_seen: t.Union([t.Date(), t.Null()]),
+          belong_group: t.Union([t.Number(),t.Null()]), 
+        }),
+        //response: updateModuleSchema,
         detail: {
           description: 'Updates a module properties',
           tags: ['module'],
