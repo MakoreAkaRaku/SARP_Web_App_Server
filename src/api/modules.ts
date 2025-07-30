@@ -76,7 +76,6 @@ export const module = new Elysia({ prefix: '/module' })
           last_seen: t.Union([t.Date(), t.Null()]),
           belong_group: t.Union([t.Number(),t.Null()]), 
         }),
-        //response: updateModuleSchema,
         detail: {
           description: 'Updates a module properties',
           tags: ['module'],
