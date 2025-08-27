@@ -32,12 +32,12 @@ function getNavElementsList({ userCredentials }: BaseNavBarProps) {
     elementList.push(<NavElement href="/groups"><IconGroup classes="size-10"/></NavElement>)
     elementList.push(<NavElement href="/token"><IconToken classes="size-10"/></NavElement>)
     elementList.push(<NavElement href="/modules"><IconDevice classes="size-10"/></NavElement>)
-    elementList.push(<NavElement href="/about">Acerca de SARP</NavElement>)
+    //elementList.push(<NavElement href="/about">Acerca de SARP</NavElement>)
     elementList.push(<UserProfile {...userCredentials} />)
   }
   else { //We are not logged in
 
-    elementList.push(<NavElement href="/about">Acerca de SARP</NavElement>)
+    // elementList.push(<NavElement href="/about">Acerca de SARP</NavElement>)
     elementList.push(<NavElement href="/login"><div class="flex flex-row gap-x-2"><IconLogin/> <p>Inicia Sesión</p></div></NavElement>)
   }
   return <>
