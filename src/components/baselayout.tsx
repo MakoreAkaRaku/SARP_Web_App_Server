@@ -26,7 +26,7 @@ export default function BaseLayout({ title, children, userCredentials }: BaseLay
         <script src="/public/cron_lang_es.js"></script>
         <script defer src="/public/script.js" />
       </head>
-      <body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
+      <body class="bg-gray-900 dark:bg-gray-900 text-white dark:text-white">
         <HorizontalNavBar userCredentials={userCredentials} />
         {children}
       </body>
