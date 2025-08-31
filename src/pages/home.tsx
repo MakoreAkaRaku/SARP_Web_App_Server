@@ -69,7 +69,13 @@ export default function Home({ children, userCredentials }: BaseLayoutProps) {
               {" "}y flashea el firmware usando el IDE de ESP-IDF, Arduino o PlatformIO.
             </b>
           </p>
-          <p>Después, descarga la aplicación móvil SARPApp desde la tienda de aplicaciones de tu dispositivo móvil.
+          <p>Después, descarga la aplicación móvil {" "}
+            <a
+              class="text-green-600 underline hover:text-green-800 transition-colors"
+              href="https://github.com/MakoreAkaRaku/SARP_Bluetooth_App/releases">
+              SARPApp
+            </a>
+            {" "} desde la tienda de aplicaciones de tu dispositivo móvil.
             Inicia sesión con las credenciales que usaste para registrarte en esta web, y sigue las instrucciones para configurar el microcontrolador vía BLE.
             Finalmente, una vez configurado el microcontrolador, este se conectará automáticamente a la red Wi-Fi y comenzará a enviar datos a la API REST.
           </p>
