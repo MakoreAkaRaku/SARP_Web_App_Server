@@ -48,7 +48,7 @@ export default function Home({ children, userCredentials }: BaseLayoutProps) {
             >
               ESP32
             </a>
-            , pues es el microcontrolador que me he usado como modelo para realizar esta web app.
+            , pues es el microcontrolador que he usado como modelo para realizar esta web app.
           </p>
           <p>
             Una vez tengas el microcontrolador, debes conectar los sensores y actuadores a los pines adecuados,
@@ -57,6 +57,17 @@ export default function Home({ children, userCredentials }: BaseLayoutProps) {
               Montaje físico
             </a>
             .
+          </p>
+          <p>
+            <b>
+              <i>IMPORTANTE: </i> El microcontrolador debe tener el firmware de SARP cargado previamente. Para ello, descarga el código fuente desde este{" "}
+              <a
+                class="text-green-600 underline hover:text-green-800 transition-colors"
+                href="https://github.com/MakoreAkaRaku/SARP_ESP32_Module">
+                repositorio
+              </a>
+              {" "}y flashea el firmware usando el IDE de ESP-IDF, Arduino o PlatformIO.
+            </b>
           </p>
           <p>Después, descarga la aplicación móvil SARPApp desde la tienda de aplicaciones de tu dispositivo móvil.
             Inicia sesión con las credenciales que usaste para registrarte en esta web, y sigue las instrucciones para configurar el microcontrolador vía BLE.
